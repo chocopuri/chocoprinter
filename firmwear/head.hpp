@@ -1,3 +1,10 @@
+//
+//    ガントリー上を移動するヘッド
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
 #include "stepper_motor.hpp"

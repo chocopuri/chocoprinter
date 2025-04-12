@@ -1,3 +1,10 @@
+//
+//    プリンター本体
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
 #include "head.hpp"
@@ -8,7 +15,7 @@
 
 namespace choco
 {
-    class printer
+    class choco_printer
     {
 
         // ハードウエア
@@ -25,7 +32,11 @@ namespace choco
         HardwareSerial& serial;    // シリアルポート
 
     public:
-        printer(choco::gantry&& gantry, choco::head&& head, choco::limit_switch&& unpause_sw, HardwareSerial& serial)
+        choco_printer(
+            choco::gantry&& gantry,
+            choco::head&& head,
+            choco::limit_switch&& unpause_sw,
+            HardwareSerial& serial)
             : gantry{ std::move(gantry) }
             , head{ std::move(head) }
             , unpause_sw{ std::move(unpause_sw) }
@@ -52,13 +63,12 @@ namespace choco
                 {
                     // コマンドをキューに追加
                     command_queue.push(*command);
-                    const auto m = "[o] Command added: " + command_to_string(*command);
-                    serial.println(m.c_str());
+                    const auto m = "[o] Command received: " + single_command_line;
+                    serial.println(m.c_str());    // パースにバグが無いかの確認もしたいので、single_command_lineではなくパース後のcommandを使って出力
                 }
                 else
                 {
-                    const auto m = "[x] Invalid command: " + command_to_string(*command);
-                    serial.println(m.c_str());
+                    serial.println("[x] Invalid command: " + single_command_line);
                 }
             }
 
@@ -88,7 +98,7 @@ namespace choco
     private:
         bool execute_command(const command_type::go& target_position)
         {
-            return gantry.move_to(target_position, 100);    // 100 mm/s で移動
+            return gantry.move_to(target_position, speed);
         }
 
         bool execute_command(const command_type::speed& speed)

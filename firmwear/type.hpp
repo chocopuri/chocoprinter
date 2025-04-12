@@ -1,6 +1,14 @@
+//
+//    型定義
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
 #include <cstdint>
+#include <istream>
 
 namespace choco
 {
@@ -18,6 +26,16 @@ namespace choco
     using f64 = double;
     using f32 = float;
 
+    struct vector2d
+    {
+        f64 x;
+        f64 y;
+
+        friend std::istream& operator>>(std::istream& is, vector2d& v)
+        {
+            return is >> v.x >> v.y;
+        }
+    };
 
     enum class choco_color
     {

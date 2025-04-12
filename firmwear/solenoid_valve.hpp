@@ -1,6 +1,13 @@
+//
+//    ソレノイドバルブ
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
-#include "typedef.hpp"
+#include "type.hpp"
 
 namespace choco
 {

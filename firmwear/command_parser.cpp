@@ -1,3 +1,10 @@
+//
+//    コマンド解析器
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #include "command_parser.hpp"
 
 #include <sstream>

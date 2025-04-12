@@ -1,13 +1,18 @@
+//
+//    XY軸移動用ガントリー
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
-#include "vector2d.hpp"
 #include "stepper_motor.hpp"
 
 namespace choco
 {
 
-    /// @brief ガントリ制御クラス
-    /// @note ガントリは X 軸と Y 軸の 2 軸で構成されている
+    /// @brief XY軸移動用ガントリー
     class gantry
     {
 

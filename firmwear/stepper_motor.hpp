@@ -1,9 +1,19 @@
+//
+//    ステッピングモーター
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
-#include "typedef.hpp"
+#include "type.hpp"
 
 namespace choco
 {
+
+    /// @brief ステッピングモータ
+    /// @note モータードライバと通信する
     class stepper_motor
     {
         i8 pin_step;
@@ -55,6 +65,7 @@ namespace choco
     };
 
 
+    /// @brief リミットスイッチ
     class limit_switch
     {
         i8 pin;
@@ -78,7 +89,7 @@ namespace choco
 
 
     /// @brief 原点取り可能なモータ
-    /// @note 原点取り用のリミットスイッチを持つモータ
+    /// @note リミットスイッチとモーターの組み合わせ
     class homing_available_motor
     {
         stepper_motor motor;
@@ -105,13 +116,18 @@ namespace choco
 
 
         /// @brief 原点取り loop 内で呼び出す
-        /// @param limit_switch_angle リミットスイッチと接触した位置の角度 [rad/s] (リミットスイッチの位置が原点とは限らないので)
-        /// @param first_approach_speed 原点に近づく速度 [rad/s]
+        /// @param limit_switch_angle リミットスイッチと接触した位置の角度 [rad] (リミットスイッチの位置が原点とは限らないので)
+        /// @param first_approach_speed 一度目に原点に近づく時の移動速度 [rad/s]
         /// @param retreat_time_ms 原点到達後、原点から離れる時間 [ms]
         /// @param retreat_speed 原点から離れる速度 [rad/s]
-        /// @param second_approach_speed 2度めの原点取り速度 [rad/s]
+        /// @param second_approach_speed 二度目に原点に近づく時の移動速度 [rad/s]
         /// @return 原点取りが終了した場合 true 移動中は false
-        bool homing(f64 limit_switch_angle, f64 first_approach_speed, u32 retreat_time_ms, f64 retreat_speed, f64 second_approach_speed)
+        bool homing(
+            f64 limit_switch_angle,
+            f64 first_approach_speed,
+            u32 retreat_time_ms,
+            f64 retreat_speed,
+            f64 second_approach_speed)
         {
             switch (homing_sequence)
             {
@@ -147,6 +163,11 @@ namespace choco
             return false;    // 原点取り中
         }
 
+
+        /// @brief 任意の角度に移動する
+        /// @param angle 目標角度 [rad]
+        /// @param speed 回転角速度 [rad/s]
+        /// @return true: 移動完了 false: 移動中
         bool move_to(f64 angle, f64 speed)
         {
             return motor.move_to(angle, speed);

@@ -1,5 +1,12 @@
 //
-//   オレオレ GCode 定義
+//    コマンド解析器
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
+//
+// # コマンド定義
 //
 // - 原点取り
 //   home
@@ -39,8 +46,7 @@
 
 #pragma once
 
-#include "vector2d.hpp"
-#include "typedef.hpp"
+#include "type.hpp"
 
 #include <optional>
 #include <variant>

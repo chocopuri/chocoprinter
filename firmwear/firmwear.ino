@@ -1,7 +1,16 @@
-#include "printer.hpp"
+//
+//    チョコプリンター機構用ファームウエア
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+//    ボード : Raspberry Pi Pico (https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json)
+//
+
+
+#include "choco_printer.hpp"
 #include "loop_cycle_controller.hpp"
 
-static choco::printer printer{
+static choco::choco_printer printer{
     choco::gantry{
         choco::homing_available_motor{
             choco::stepper_motor{ 2, 3, 4 },
