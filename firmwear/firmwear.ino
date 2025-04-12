@@ -13,24 +13,24 @@
 static choco::choco_printer printer{
     choco::gantry{
         choco::homing_available_motor{
-            choco::stepper_motor{ 2, 3, 4 },
+            choco::stepper_motor{ 2, 3 },
             choco::limit_switch{ 5 },
         },
         choco::homing_available_motor{
-            choco::stepper_motor{ 6, 7, 8 },
+            choco::stepper_motor{ 6, 7 },
             choco::limit_switch{ 9 },
         },
     },
     choco::head{
         choco::homing_available_motor{
-            choco::stepper_motor{ 8, 9, 10 },
+            choco::stepper_motor{ 8, 9 },
             choco::limit_switch{ 11 },
         },
         choco::solenoid_valve{ 11 },
         choco::solenoid_valve{ 12 },
     },
     choco::limit_switch{ 13 },
-    Serial,
+    choco::command_sequencer{ Serial },
 };
 
 static choco::loop_cycle_controller loop_ctrl{ 5 };

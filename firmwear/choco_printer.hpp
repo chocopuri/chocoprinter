@@ -9,9 +9,7 @@
 
 #include "head.hpp"
 #include "gantry.hpp"
-#include "command_parser.hpp"
-
-#include <queue>
+#include "command_sequencer.hpp"
 
 namespace choco
 {
@@ -23,24 +21,20 @@ namespace choco
         choco::head head;                  // ヘッド (Z 軸, チョコ容器)
         choco::limit_switch unpause_sw;    // ポーズ解除スイッチ
 
-        // コマンド
-        std::queue<command> command_queue;                        // コマンドキュー
-        std::optional<command> current_command = std::nullopt;    // 現在実行中のコマンド
+        choco::command_sequencer sequencer;
 
         f64 speed = 0.0;    // 移動速度 [mm/s]
-
-        HardwareSerial& serial;    // シリアルポート
 
     public:
         choco_printer(
             choco::gantry&& gantry,
             choco::head&& head,
             choco::limit_switch&& unpause_sw,
-            HardwareSerial& serial)
+            choco::command_sequencer&& sequencer)
             : gantry{ std::move(gantry) }
             , head{ std::move(head) }
             , unpause_sw{ std::move(unpause_sw) }
-            , serial{ serial }
+            , sequencer{ std::move(sequencer) }
         {
         }
 
@@ -49,49 +43,18 @@ namespace choco
             gantry.init();
             head.init();
             unpause_sw.init();
-
-            serial.begin(115200);
-            serial.setTimeout(20);
+            sequencer.init();
         }
 
         void update()
         {
-            while (serial.available())
-            {
-                const String single_command_line = serial.readStringUntil('\n');
-                if (const auto command = choco::parse_command({ single_command_line.c_str() }))
-                {
-                    command_queue.push(*command);    // コマンドをキューに追加
-                    const auto m = "[o] Command received: " + choco::command_to_string(*command);
-                    serial.println(m.c_str());    // パースにバグが無いかの確認もしたいので、single_command_lineではなくパース後のcommandを使って出力
-                }
-                else
-                {
-                    serial.println("[x] Invalid command: " + single_command_line);
-                }
-            }
+            sequencer.receive_command_from_serial();
 
-            // 送信された順にコマンドを取り出す
-            if (not current_command && not command_queue.empty())
-            {
-                current_command = command_queue.front();
-                command_queue.pop();
-
-                const auto m = "[o] Command started: " + choco::command_to_string(*current_command);
-                serial.println(m.c_str());
-            }
-
-            // std::variant は共用体なので、訪問者パターンでコマンドを実行する
-            const bool is_finish = std::visit([this](auto&& cmd) -> bool
-                                              { return this->execute_command(cmd); },
-                                              *current_command);
-            if (is_finish)
-            {
-                current_command = std::nullopt;    // コマンド実行完了
-
-                const auto m = "[o] Command finished: " + choco::command_to_string(*current_command);
-                serial.println(m.c_str());
-            }
+            // 引数にコマンドの引数をのせてコールバックする
+            // コマンドの種類ごとに異なるオーバーロード関数が呼ばれる
+            // コールバック関数がtrueを返したら次のコマンドに移行する
+            sequencer.execute([this](auto&& cmd)
+                              { return execute_command(cmd); });
         }
 
     private:
@@ -125,8 +88,7 @@ namespace choco
 
         bool execute_command(const command_type::clear&)
         {
-            command_queue = {};
-            // current_command = std::nullopt;    // 現在実行中のコマンドをクリア
+            sequencer.clear_command();
             return true;
         }
     };
