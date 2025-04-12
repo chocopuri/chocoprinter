@@ -61,9 +61,8 @@ namespace choco
                 const String single_command_line = serial.readStringUntil('\n');
                 if (const auto command = choco::parse_command({ single_command_line.c_str() }))
                 {
-                    // コマンドをキューに追加
-                    command_queue.push(*command);
-                    const auto m = "[o] Command received: " + single_command_line;
+                    command_queue.push(*command);    // コマンドをキューに追加
+                    const auto m = "[o] Command received: " + choco::command_to_string(*command);
                     serial.println(m.c_str());    // パースにバグが無いかの確認もしたいので、single_command_lineではなくパース後のcommandを使って出力
                 }
                 else

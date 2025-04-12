@@ -18,17 +18,15 @@ namespace choco
     {
         i8 pin_step;
         i8 pin_dir;
-        i8 pin_enable;
 
         direction dir;    // 正転か逆転か
 
         i64 current_pos = 0;
 
     public:
-        stepper_motor(i8 pin_step, i8 pin_dir, i8 pin_enable, direction dir = direction::forward)
+        stepper_motor(i8 pin_step, i8 pin_dir, direction dir = direction::forward)
             : pin_step(pin_step)
             , pin_dir(pin_dir)
-            , pin_enable(pin_enable)
             , dir(dir)
         {
         }

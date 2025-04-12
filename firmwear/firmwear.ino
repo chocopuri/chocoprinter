@@ -33,7 +33,7 @@ static choco::choco_printer printer{
     Serial,
 };
 
-static choco::loop_cycle_controller loop_ctrl{ 5 };    // 制御周期調整器
+static choco::loop_cycle_controller loop_ctrl{ 5 };
 
 void setup()
 {
