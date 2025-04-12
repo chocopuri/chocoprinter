@@ -1,5 +1,5 @@
 //
-//    ソレノイドバルブ
+//    電磁弁
 //
 //    Copyright (c) 2025 okawa yusuke
 //
@@ -12,7 +12,7 @@
 namespace choco
 {
 
-    /// @brief ソレノイドバルブ制御クラス
+    /// @brief 電磁弁制御クラス
     class solenoid_valve
     {
 

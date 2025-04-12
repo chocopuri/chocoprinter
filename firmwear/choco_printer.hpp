@@ -48,47 +48,54 @@ namespace choco
 
         void update()
         {
-            sequencer.receive_command_from_serial();
-
             // 引数にコマンドの引数をのせてコールバックする
             // コマンドの種類ごとに異なるオーバーロード関数が呼ばれる
             // コールバック関数がtrueを返したら次のコマンドに移行する
-            sequencer.execute([this](auto&& cmd)
-                              { return execute_command(cmd); });
+            sequencer.execute_command([this](auto&& cmd)
+                                     { return executer(cmd); });
         }
 
     private:
-        bool execute_command(const command_type::go& target_position)
+        bool executer(const command_type::go& target_position)
         {
             return gantry.move_to(target_position, speed);
         }
 
-        bool execute_command(const command_type::speed& speed)
+        bool executer(const command_type::speed& speed)
         {
             this->speed = speed;
             return true;
         }
 
-        bool execute_command(const command_type::pause&)
+        bool executer(const command_type::pause&)
         {
             return unpause_sw.is_pressed();    // ポーズ解除スイッチが押されるまで待機
         }
 
-        bool execute_command(const command_type::home&)
+        bool executer(const command_type::home&)
         {
             // 原点取り
             return gantry.homing() && head.homing();
         }
 
-        bool execute_command(const command_type::choco& cmd)
+        bool executer(const command_type::choco& cmd)
         {
             head.inject(cmd.color, cmd.inject);       // チョコの射出
             return head.move_to(cmd.color, cmd.z);    // Z座標を移動
         }
 
-        bool execute_command(const command_type::clear&)
+        bool executer(const command_type::clear&)
         {
             sequencer.clear_command();
+            return true;
+        }
+
+        bool executer(const command_type::dump& cmd)
+        {
+            if (cmd.type == command_type::dump::dump_type::current)
+                sequencer.dump_current();
+            else if (cmd.type == command_type::dump::dump_type::all)
+                sequencer.dump_all();
             return true;
         }
     };

@@ -56,12 +56,25 @@ namespace choco
 
     namespace command_type
     {
+
+        struct immediate_tag{};  // 受信後即実行したい場合はこの型を継承する
+
+
         using go = vector2d;
         using speed = f64;
 
         struct pause{};
         struct home{};
-        struct clear{};
+        struct clear : immediate_tag{};
+
+        struct dump : immediate_tag
+        {
+            enum class dump_type
+            {
+                all,
+                current,
+            } type;
+        };
 
         struct choco
         {
@@ -72,14 +85,14 @@ namespace choco
     }    // namespace command_type
 
     /// @brief コマンド
-    /// @note コマンドの種類によって使用されるメンバが異なるため、共用体を使用している
     using command = std::variant<
-        command_type::go,       // type::go
-        command_type::speed,    // type::speed
-        command_type::home,     // type::home
-        command_type::choco,    // type::choco
-        command_type::pause,    // type::pause
-        command_type::clear     // type::clear
+        command_type::go,
+        command_type::speed,
+        command_type::home,
+        command_type::choco,
+        command_type::pause,
+        command_type::clear,
+        command_type::dump
         >;
 
     /// @brief コマンドを解析する
