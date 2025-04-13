@@ -147,6 +147,7 @@ namespace choco
                 {
                     homing_sequence++;
                 }
+                break;
 
             case 3:
                 motor.rotate(second_approach_speed * direction_to_sign(home_dir));    // 原点に再度移動

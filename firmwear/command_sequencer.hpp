@@ -101,28 +101,20 @@ namespace choco
         void dump_all() const
         {
             for (auto&& command : command_queue)
-            {
-                const auto m = choco::command_to_string(command);
-                serial.println(m.c_str());
-            }
+                log(choco::command_to_string(command));
         }
 
         /// @brief デバッグ出力
         void dump_current() const
         {
             if (current_command)
-            {
-                const auto m = choco::command_to_string(*current_command);
-                serial.println(m.c_str());
-            }
+                log(choco::command_to_string(*current_command));
             else
-            {
-                serial.println("command is not running");
-            }
+                log("command is not running");
         }
 
     private:
-        void log(const std::string& message)
+        void log(const std::string& message) const
         {
             serial.println(message.c_str());
         }
