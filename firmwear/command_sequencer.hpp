@@ -1,4 +1,10 @@
-#include <type_traits>
+//
+//    コマンドを順に実行するクラス
+//
+//    Copyright (c) 2025 okawa yusuke
+//
+
+
 #pragma once
 
 #include "command_parser.hpp"
