@@ -325,6 +325,10 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Buttons.hpp" />
+    <ClInclude Include="Pin.hpp" />
+    <ClInclude Include="Serial_com.hpp" />
+    <ClInclude Include="Stage.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
