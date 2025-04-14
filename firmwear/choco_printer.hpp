@@ -52,7 +52,7 @@ namespace choco
             // コマンドの種類ごとに異なるオーバーロード関数が呼ばれる
             // コールバック関数がtrueを返したら次のコマンドに移行する
             sequencer.execute_command([this](auto&& cmd)
-                                     { return executer(cmd); });
+                                      { return executer(cmd); });
         }
 
     private:
@@ -80,8 +80,18 @@ namespace choco
 
         bool executer(const command_type::choco& cmd)
         {
-            head.inject(cmd.color, cmd.inject);       // チョコの射出
-            return head.move_to(cmd.color, cmd.z);    // Z座標を移動
+            if (cmd.inject)
+            {
+                if (not head.move_to(cmd.color, cmd.z))
+                    return false;
+                head.inject(cmd.color, true);    // 移動できたらチョコの射出
+                return true;
+            }
+            else
+            {
+                head.inject(cmd.color, false);            // チョコの射出停止してから移動
+                return head.move_to(cmd.color, cmd.z);
+            }
         }
 
         bool executer(const command_type::clear&)

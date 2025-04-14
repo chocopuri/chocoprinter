@@ -1,4 +1,4 @@
-﻿# include <Siv3D.hpp>
+﻿# include <Siv3D.hpp>  // OpenSiv3D 0.6.16
 
 using VertexID = int32;
 
