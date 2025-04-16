@@ -3,8 +3,8 @@ public:
 	const Array<SerialPortInfo> infos = System::EnumerateSerialPorts();
 	const Array<String> options = infos.map([](const SerialPortInfo& info)
 	{
-		return U"{} ({})"_fmt(info.port, info.description);
-	});
+		return info.port;
+	}) << U"none";;
 
 	Serial serial;
 	size_t index = (options.size() - 1);
@@ -15,12 +15,12 @@ public:
 		if (enabled)
 		{
 			// 2 バイト (int16) のデータを書き込む
-			const int16 n = 12300;
+			const std::string n = "123 \n";
 
-			serial.write(n);
+			serial.write(n.data(), n.size());
 		}
 
-		if (SimpleGUI::RadioButtons(index, options, Vec2{ 200, 60 }))
+		if (SimpleGUI::RadioButtons(index, options, Vec2{ Scene::Size().x - 250, Scene::Size().y - 375}))
 		{
 			ClearPrint();
 
@@ -33,7 +33,7 @@ public:
 				Print << U"Open {}"_fmt(infos[index].port);
 
 				// シリアルポートをオープン
-				if (serial.open(infos[index].port))
+				if (serial.open(infos[index].port, 115200))
 				{
 					Print << U"Succeeded";
 				}
@@ -44,13 +44,11 @@ public:
 			}
 		}
 
-		if (const size_t available = serial.available())
-		{
-			int16 n;
-
-			if (serial.read(n)) // 2 バイト (int16) のデータを読み込んだら
-			{
-				Print << U"READ: " << n;
+		if (const size_t available = serial.available()) {
+			std::string n(available, ' ');
+			Print << U"1";
+			if (serial.read(n.data(), n.size())) {
+				Console << U"READ: " << Unicode::WidenAscii(n);
 			}
 		}
 	}

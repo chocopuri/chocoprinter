@@ -821,5 +821,8 @@
     <ClInclude Include="Serial_com.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="command_generater.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

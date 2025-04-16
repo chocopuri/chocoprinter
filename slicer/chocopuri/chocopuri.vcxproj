@@ -326,6 +326,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buttons.hpp" />
+    <ClInclude Include="command_generater.hpp" />
     <ClInclude Include="Pin.hpp" />
     <ClInclude Include="Serial_com.hpp" />
     <ClInclude Include="Stage.hpp" />
