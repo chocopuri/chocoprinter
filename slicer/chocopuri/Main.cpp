@@ -32,11 +32,16 @@ void Main() {
 				//Print << p.enabled[tmp] << U" " << tmp;
 				tmp--;
 			}
-			serial.communication(1);
+			for (auto&& cmd : commands)
+			{
+				command parsed = parse_command(cmd);
+				std::visit([](auto&& cmd) { print(cmd); }, parsed.v);
+			}
 		}
 		//Print << p.enabled.size();
 		//Print << p.enabled;
 		//Print << p.vertices;
 		Print << c.commandList;
+
 	}
 }
