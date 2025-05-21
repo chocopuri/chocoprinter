@@ -83,9 +83,8 @@ namespace choco
                 // 訪問者の関数がtrueを返したら次のコマンドへ
                 if (is_finish)
                 {
-                    current_command = std::nullopt;    // コマンド実行完了
-
                     log("[o] command finished: " + choco::command_to_string(*current_command));
+                    current_command = std::nullopt;    // コマンド実行完了
                 }
             }
         }
