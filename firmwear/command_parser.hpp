@@ -6,42 +6,22 @@
 
 
 //
-// # コマンド定義
+// # コマンド定義  ([] は変数)
 //
 // - 原点取り
 //   home
 //
-// - 移動速度指定
-//   speed 速度[mm/s]
-//
-// - 座標指定
-//   go X座標[mm] Y座標[mm]
-//
-// - チョコ容器の移動
-//   choco white/black Z座標[mm] inject/stop
-//
-//   inject の場合、目標 Z 座標まで移動してから射出
-//   stop の場合、射出停止してから目標 Z 座標まで移動
+// - 移動
+//   move [color(white/black)] [x(mm)] [y(mm)] [z(mm)] [speed(mm/s)] [choco emit(emit/stop)]
 //
 // - 一時停止 本体のボタンを押すまで待機
 //   pause
 //
-// - コマンド列消去 (デバッグ用)
-//   clear
-//
 // - 送信例
-//   pause                   # 本体のボタンを押すまで待機
-//   home                    # 原点取り
-//   speed 100               # 移動速度を 100 mm/s に指定
-//   go 100 200              # 100 mm, 200 mm に移動
-//
-//   choco white 10 inject   # ホワイトチョコの容器をZ座標 10 mm 上に移動した後射出
-//   go 300 400              # 300 mm, 400 mm に移動
-//   choco white 20 stop     # ホワイトチョコの容器の射出を停止してからZ座標 20 mm 上に移動
-//
-//   choco black 10 inject   # ブラックチョコの容器をZ座標 10 mm 上に移動した後射出
-//   go 100 200              # 100 mm, 200 mm に移動
-//   choco black 20 stop     # ブラックチョコの容器の射出を停止してからZ座標 20 mm 上に移動
+//   pause                     # 本体のボタンを押すまで待機
+//   home                      # 原点取り
+//   move white 0 0 0 20 stop  # 白チョコの座標を基準に、チョコを出さずに (0,0,0) へ 20m/s で移動
+//   move white 9 9 9 20 emit  # チョコを出しながら (9,9,9) へ 20m/s で移動
 //
 
 #pragma once
