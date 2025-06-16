@@ -56,15 +56,10 @@ namespace choco
         }
 
     private:
-        bool executer(const command_type::go& target_position)
+        bool executer(const command_type::move& target_position)
         {
-            return gantry.move_to(target_position, speed);
-        }
-
-        bool executer(const command_type::speed& speed)
-        {
-            this->speed = speed;
-            return true;
+            const vector3d pos = target_position.position; // todo
+            return gantry.move_to({ pos.x, pos.y }, target_position.speed);
         }
 
         bool executer(const command_type::pause&)
@@ -78,33 +73,11 @@ namespace choco
             return gantry.homing() && head.homing();
         }
 
-        bool executer(const command_type::choco& cmd)
-        {
-            if (cmd.inject)
-            {
-                if (not head.move_to(cmd.color, cmd.z))
-                    return false;
-                head.inject(cmd.color, true);    // 移動できたらチョコの射出
-                return true;
-            }
-            else
-            {
-                head.inject(cmd.color, false);            // チョコの射出停止してから移動
-                return head.move_to(cmd.color, cmd.z);
-            }
-        }
-
-        bool executer(const command_type::clear&)
-        {
-            sequencer.clear_command();
-            return true;
-        }
-
         bool executer(const command_type::dump& cmd)
         {
-            if (cmd.type == command_type::dump::dump_type::current)
+            if (cmd.kind == dump_kind::current)
                 sequencer.dump_current();
-            else if (cmd.type == command_type::dump::dump_type::all)
+            else if (cmd.kind == dump_kind::all)
                 sequencer.dump_all();
             return true;
         }

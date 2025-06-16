@@ -53,9 +53,9 @@ namespace choco
         /// @brief 指定の色のチョコを射出する
         /// @param c 色
         /// @param enable true: 射出する false: 射出停止
-        void inject(choco_color c, bool enable)
+        void inject(color_kind c, bool enable)
         {
-            auto& valve = (c == choco_color::white) ? valve_white : valve_black;
+            auto& valve = (c == color_kind::white) ? valve_white : valve_black;
             if (enable)
                 valve.open();
             else
@@ -66,7 +66,7 @@ namespace choco
         /// @brief ノズルの先端を指定の位置に移動する
         /// @param c 色
         /// @param z Z座標 [mm]
-        bool move_to(choco_color c, double z)
+        bool move_to(color_kind c, double z)
         {
             return true;
         }

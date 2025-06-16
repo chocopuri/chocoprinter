@@ -39,39 +39,29 @@ namespace choco
 
         struct immediate_tag{};  // 受信後即実行したい場合はこの型を継承する
 
-
-        using go = vector2d;
-        using speed = f64;
-
-        struct pause{};
         struct home{};
-        struct clear : immediate_tag{};
+        
+        struct pause{};
 
+        struct move
+        {
+            color_kind color;
+            vector3d position;
+            f64 speed;
+            emit_state_kind emit_state;
+        };
+        
         struct dump : immediate_tag
         {
-            enum class dump_type
-            {
-                all,
-                current,
-            } type;
-        };
-
-        struct choco
-        {
-            f64 z;
-            bool inject;
-            choco_color color;
+            dump_kind kind;
         };
     }    // namespace command_type
 
     /// @brief コマンド
     using command = std::variant<
-        command_type::go,
-        command_type::speed,
         command_type::home,
-        command_type::choco,
         command_type::pause,
-        command_type::clear,
+        command_type::move,
         command_type::dump
         >;
 

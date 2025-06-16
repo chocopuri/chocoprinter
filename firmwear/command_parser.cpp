@@ -12,6 +12,15 @@
 
 namespace choco
 {
+
+    template <class... Ts>
+    struct overload : Ts...
+    {
+        using Ts::operator()...;
+    };
+    template <class... Ts>
+    overload(Ts...) -> overload<Ts...>;
+
     /// @brief T 型の値をストリームから読み込む
     /// @param stream ストリーム
     template <typename T>
@@ -31,85 +40,75 @@ namespace choco
     {
         std::istringstream iss{ string };
 
-        std::string command_type;
-        iss >> command_type;
-        if (iss.fail())
+        const auto command = read<std::string>(iss);
+        if (not command)
             return std::nullopt;
 
         // 出現回数が多そうな順に判定する
-        if (command_type == "go")
+        if (*command == "move")
         {
-            if (const auto pos = read<vector2d>(iss))
-                return command_type::go{ *pos };
-            else
-                return std::nullopt;
-        }
+            const auto read_color = [&iss]() -> std::optional<color_kind>
+            {
+                if (const auto color_string = read<std::string>(iss))
+                    return string_to_color_kind(*color_string);
+                else
+                    return std::nullopt;
+            };
 
-        if (command_type == "choco")
-        {
-            const auto color_str = read<std::string>(iss);
-            const auto z = read<double>(iss);
-            const auto inject_str = read<std::string>(iss);
+            const auto read_emit_state = [&iss]() -> std::optional<emit_state_kind>
+            {
+                if (const auto state_string = read<std::string>(iss))
+                    return string_to_emit_state_kind(*state_string);
+                else
+                    return std::nullopt;
+            };
 
-            if (not color_str || not z || not inject_str)
-                return std::nullopt;
-
-            choco_color color;
-            if (*color_str == "white")
-                color = choco_color::white;
-            else if (*color_str == "black")
-                color = choco_color::black;
-            else
+            const auto color = read_color();
+            if (not color)
                 return std::nullopt;
 
-            bool inject;
-            if (*inject_str == "inject")
-                inject = true;
-            else if (*inject_str == "stop")
-                inject = false;
-            else
+            const auto position = read<vector3d>(iss);
+            if (not position)
                 return std::nullopt;
 
-            return command_type::choco{
-                .z = *z,
-                .inject = inject,
-                .color = color,
+            const auto speed = read<f64>(iss);
+            if (not speed)
+                return std::nullopt;
+
+            const auto emit_state = read_emit_state();
+            if (not emit_state)
+                return std::nullopt;
+
+            return command_type::move{
+                .color = *color,
+                .position = *position,
+                .speed = *speed,
+                .emit_state = *emit_state,
             };
         }
 
-        if (command_type == "speed")
-        {
-            if (const auto speed = read<double>(iss))
-                return command_type::speed{ *speed };
-            else
-                return std::nullopt;
-        }
-
-        if (command_type == "home")
+        if (*command == "home")
         {
             return command_type::home{};
         }
 
-        if (command_type == "pause")
+        if (*command == "pause")
         {
             return command_type::pause{};
         }
 
-        if (command_type == "clear")
+        if (*command == "dump")
         {
-            return command_type::clear{};
-        }
+            const auto read_dump_kind = [&iss]() -> std::optional<dump_kind>
+            {
+                if (const auto dump_kind_string = read<std::string>(iss))
+                    return string_to_dump_kind(*dump_kind_string);
+                else
+                    return std::nullopt;
+            };
 
-        if (command_type == "dump")
-        {
-            const auto dump_type = read<std::string>(iss);
-            if (not dump_type)
-                return std::nullopt;
-            
-            if (*dump_type == "all")
-                return command_type::dump{ .type = command_type::dump::dump_type::all };
-            else if (*dump_type == "current")
-                return command_type::dump{ .type = command_type::dump::dump_type::current };
+            if (const auto dump_kind = read_dump_kind())
+                return command_type::dump{ *dump_kind };
             else
                 return std::nullopt;
         }
@@ -118,7 +117,7 @@ namespace choco
     }
 
 
-    static std::string f64_to_string_with_precision(f64 value, i32 precision = 2)
+    static std::string f64_to_string(f64 value, i32 precision = 2)
     {
         char buf[64];
         std::snprintf(buf, sizeof buf, "%.*f", (int)precision, value);
@@ -130,27 +129,19 @@ namespace choco
     /// @return 文字列
     std::string command_to_string(const command& command)
     {
-        return std::visit(
-            [](const auto& cmd) -> std::string
+        auto visitor = overload{
+            [](command_type::pause) -> std::string
+            { return "pause"; },
+            [](command_type::home) -> std::string
+            { return "home"; },
+            [](const command_type::move& command) -> std::string
             {
-                using T = std::decay_t<decltype(cmd)>;
-                if constexpr (std::is_same_v<T, command_type::go>)
-                    return "go " + f64_to_string_with_precision(cmd.x) + " " + f64_to_string_with_precision(cmd.y);
-                if constexpr (std::is_same_v<T, command_type::speed>)
-                    return "speed " + f64_to_string_with_precision(cmd);
-                if constexpr (std::is_same_v<T, command_type::pause>)
-                    return "pause";
-                if constexpr (std::is_same_v<T, command_type::home>)
-                    return "home";
-                if constexpr (std::is_same_v<T, command_type::choco>)
-                    return "choco " + std::string(cmd.color == choco_color::white ? "white " : "black ") + f64_to_string_with_precision(cmd.z) + " " + (cmd.inject ? "inject" : "stop");
-                if constexpr (std::is_same_v<T, command_type::clear>)
-                    return "clear";
-                if constexpr (std::is_same_v<T, command_type::dump>)
-                    return "dump " + std::string(cmd.type == command_type::dump::dump_type::all ? "all" : "current");
-                return "[unknown]";
+                return "move" + color_kind_to_string(command.color) + ' ' + command.position.to_string() + ' ' + f64_to_string(command.speed) + ' ' + emit_state_kind_to_string(command.emit_state);
             },
-            command);
+            [](command_type::dump) -> std::string
+            { return "dump"; },
+        };
+        return std::visit(visitor, command);
     }
 
 
