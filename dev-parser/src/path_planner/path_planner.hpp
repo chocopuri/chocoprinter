@@ -29,12 +29,13 @@ struct TrapezoidBlock
 /// @return
 TrapezoidBlock make_trapezoid_block(float begin, float end, float speed_begin, float speed_end, float speed_limit, float acc, float dec);
 
-struct Path
+struct Node
 {
-
+    Vec3 waypoint;
+    float choco;
 };
 
-std::vector<Path> make_path()
+std::vector<Path> make_path(const std::vector<Path>& positions)
 {
 
 }
