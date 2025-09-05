@@ -2,6 +2,8 @@
 //   台形制御テスト
 //
 
+#ifndef ARDUINO
+
 #include <iostream>
 #include <cmath>
 #include <cassert>
@@ -12,7 +14,7 @@
 static bool float_eq(float lhs, float rhs)
 {
     const float EPSILON = 0.001;    // 許容誤差
-    return std::fabsf(lhs - rhs) < EPSILON;
+    return std::fabs(lhs - rhs) < EPSILON;
 }
 
 static void test_distance_consistency(const TrapezoidBlock& path)
@@ -58,3 +60,5 @@ int main()
 
     std::cout << "passed" << std::endl;
 }
+
+#endif

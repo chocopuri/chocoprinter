@@ -2,6 +2,8 @@
 //   コマンドパーサーテスト
 //
 
+#ifndef ARDUINO
+
 #include <cassert>
 
 #include "command_parser.hpp"
@@ -50,3 +52,5 @@ int main()
 
     std::cout << "passed" << std::endl;
 }
+
+#endif

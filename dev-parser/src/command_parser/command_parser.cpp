@@ -2,12 +2,12 @@
 
 #include "command_parser.hpp"
 
-bool operator==(const CommandHome& l, const CommandHome& r)
+bool operator==(const CommandHome&, const CommandHome&)
 {
     return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const CommandHome& self)
+std::ostream& operator<<(std::ostream& os, const CommandHome&)
 {
     return os;
 }

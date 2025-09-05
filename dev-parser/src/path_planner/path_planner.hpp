@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "common/type.hpp"
+#include "../common/type.hpp"
 
 struct TrapezoidBlock
 {
@@ -35,7 +35,7 @@ struct Node
     float choco;
 };
 
-std::vector<Path> make_path(const std::vector<Path>& positions)
+std::vector<Node> make_path(const std::vector<Node>& /*positions*/)
 {
-
+    return {};
 }

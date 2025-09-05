@@ -4,7 +4,7 @@
 #include <optional>
 #include <iostream>
 
-#include "common/type.hpp"
+#include "../common/type.hpp"
 
 struct CommandHome
 {
