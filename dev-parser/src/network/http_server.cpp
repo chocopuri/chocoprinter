@@ -10,22 +10,35 @@ void http_server_begin()
     g_server.begin();
 }
 
-void http_server_add_post_handler(const char* endpoint, std::function<std::string(std::string_view)>&& post_handler)
+void http_server_add_post_handler(const std::string& endpoint, std::function<HttpResponse(std::string_view)>&& post_handler)
 {
-    g_server.on(endpoint, HTTP_POST, [&post_handler]()
+    g_server.on(String{ endpoint.c_str() }, HTTP_POST, [=]()
                 {
                     String body = g_server.arg("plain");
-                    std::string res = post_handler(body.c_str());
-                    g_server.send(200, "application/json", res.data());
+                    HttpResponse res = post_handler(body.c_str());
+                    
+                    Serial.println("[ OK ] Handle http post request");
+                    Serial.println(endpoint.c_str());
+                    Serial.println(body);
+                    Serial.println("[ OK ] response:");
+                    Serial.println(res.content.c_str());
+
+                    g_server.send(res.code, res.content_type.c_str(), res.content.c_str());
                 });
 }
 
-void http_server_add_get_handler(const char* endpoint, std::function<std::string()>&& get_handler)
+void http_server_add_get_handler(const std::string& endpoint, std::function<HttpResponse()>&& get_handler)
 {
-    g_server.on(endpoint, HTTP_GET, [&get_handler]()
+    g_server.on(String{ endpoint.c_str() }, HTTP_GET, [=]()
                 {
-                    std::string res = get_handler();
-                    g_server.send(200, "application/json", res.data());
+                    HttpResponse res = get_handler();
+                    
+                    Serial.println("[ OK ] Handle http get request");
+                    Serial.println(endpoint.c_str());
+                    Serial.println("[ OK ] response:");
+                    Serial.println(res.content.c_str());
+
+                    g_server.send(res.code, res.content_type.c_str(), res.content.c_str());
                 });
 }
 

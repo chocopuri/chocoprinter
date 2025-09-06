@@ -9,7 +9,7 @@ bool operator==(const CommandHome&, const CommandHome&)
 
 std::ostream& operator<<(std::ostream& os, const CommandHome&)
 {
-    return os;
+    return os << "home";
 }
 
 bool operator==(const CommandMove& l, const CommandMove& r)
@@ -19,7 +19,7 @@ bool operator==(const CommandMove& l, const CommandMove& r)
 
 std::ostream& operator<<(std::ostream& os, const CommandMove& self)
 {
-    return os << "{ " << self.color << " " << self.pos << " " << self.speed << " " << (self.is_inject ? "inject" : "stop") << " }";
+    return os << "move { " << self.color << " " << self.pos << " " << self.speed << " " << (self.is_inject ? "inject" : "stop") << " }";
 }
 
 

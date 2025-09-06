@@ -4,9 +4,9 @@
 
 #ifndef ARDUINO
 
-#include <cassert>
+#    include <cassert>
 
-#include "command_parser.hpp"
+#    include "command_parser.hpp"
 
 void expect_same(const std::string& command_str, const Command& expect)
 {
@@ -49,6 +49,18 @@ int main()
     assert(not parse_command("move pink 10 20 30 1 inject"));       // pink
     assert(not parse_command("move white 10 20 30 0 0 inject"));    // too many args
     assert(not parse_command("move white 10 20 30 0 hoge"));        // hoge
+
+    if (const auto commands = parse_commands("home \r\n move white 10.1 20.1 30.1 1.1 inject \r\n move black 10 20 30 1 stop \r\n"))
+    {
+        // for (auto&& command : *commands)
+        // {
+        //     std::cout << command << std::endl;
+        // }
+    }
+    else
+    {
+        assert(false);
+    }
 
     std::cout << "passed" << std::endl;
 }
