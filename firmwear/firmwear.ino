@@ -1,47 +1,80 @@
-//
-//    チョコプリンター機構用ファームウエア
-//
-//    Copyright (c) 2025 okawa yusuke
-//
-//    ボード : Raspberry Pi Pico (https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json)
-//
+#include "src/network/wifi.hpp"
+#include "src/network/mdns.hpp"
+#include "src/network/http_server.hpp"
+#include "src/command_parser/command_parser.hpp"
+#include "src/executor/executor.hpp"
+#include "src/file/file.hpp"
 
+#include "env.hpp"
 
-#include "choco_printer.hpp"
-#include "loop_cycle_controller.hpp"
+static Executor<Command> executor;
 
-static choco::choco_printer printer{
-    choco::gantry{
-        choco::homing_available_motor{
-            choco::stepper_motor{ 2, 3 },
-            choco::limit_switch{ 5 },
-        },
-        choco::homing_available_motor{
-            choco::stepper_motor{ 6, 7 },
-            choco::limit_switch{ 9 },
-        },
-    },
-    choco::head{
-        choco::homing_available_motor{
-            choco::stepper_motor{ 8, 9 },
-            choco::limit_switch{ 11 },
-        },
-        choco::solenoid_valve{ 11 },
-        choco::solenoid_valve{ 12 },
-    },
-    choco::limit_switch{ 13 },
-    choco::command_sequencer{ Serial },
+static file control_webpage[]{
+    file{ "index.html" },
+    file{ "style.css" },
+    file{ "script.js" },
 };
-
-static choco::loop_cycle_controller loop_ctrl{ 5 };
 
 void setup()
 {
-    printer.init();
+    delay(1000);
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    sd_card_begin();
+
+    for (auto&& file : control_webpage)
+    {
+        if (file.exists())
+        {
+            Serial.print("[ OK ] file exists: ");
+        }
+        else
+        {
+            Serial.print("[ NG ] file not exists: ");
+        }
+        Serial.println(file.get_filename().c_str());
+    }
+
+    wifi_begin(env::access_points);
+
+    mdns_begin("pico");    // http://pico.local
+
+    http_server_begin();
+
+    http_server_add_post_handler("/command", [](std::string_view sv) -> HttpResponse
+                                 {
+                                    if (const auto parsed = parse_commands(std::string{ sv }))
+                                    {
+                                        executor.replace_instructions(*parsed);
+                                        return { 200, "application/json", R"({ "status": "OK" })" };
+                                    }
+                                    else
+                                    {
+                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" };
+                                    }
+                                });
+
+    for (auto&& file : control_webpage)
+    {
+        http_server_add_get_handler("/" + file.get_filename(), [&file]() -> HttpResponse
+                                    {
+                                        if (const auto all_line_opt = file.read_all_line())
+                                            return { 200, "text/html", *all_line_opt };
+                                        else
+                                            return { 500, "text/html", "server internal error. \n file open failed." };
+                                    });
+    }
 }
 
 void loop()
 {
-    printer.update();
-    loop_ctrl.update();
+    // executor.execute(Overload{
+    //         [](CommandHome) -> bool { std::cout << "CommandHome" << std::endl; return false; },
+    //         [](CommandMove) -> bool { std::cout << "CommandMove" << std::endl; return false; },
+    //     });
+
+    http_server_update();
+    mdns_update();
+
+    digitalWrite(LED_BUILTIN, millis() % 500 > 300);
 }
