@@ -4,10 +4,30 @@
 #include "src/command_parser/command_parser.hpp"
 #include "src/executor/executor.hpp"
 #include "src/file/file.hpp"
+#include "src/hardwear/stepper_motor_homeable_synchronizable.hpp"
 
-#include "env.hpp"
+// #include "env.hpp"
 
 static Executor<Command> executor;
+
+static MultiStepper stepper_group;    // 動作を同期させるやつ
+
+static StepperMotorHomeableSynchronizable stepper{
+    stepper_group,
+    AccelStepper{ AccelStepper::DRIVER, 0, 1 },
+    LimitSwitch{ 2 },
+    2000,    // [pulse/rev]
+};
+
+static AirCylinder left_air_cylinder{
+    StepperMotorHomeableSynchronizable{
+        stepper_group,
+        AccelStepper{ AccelStepper::DRIVER, 0, 1 },
+        LimitSwitch{ 2 },
+        2000,    // [pulse/rev]
+    },
+    0.25,    // [mL/rev]
+};
 
 static file control_webpage[]{
     file{ "index.html" },
@@ -25,17 +45,14 @@ void setup()
     for (auto&& file : control_webpage)
     {
         if (file.exists())
-        {
             Serial.print("[ OK ] file exists: ");
-        }
         else
-        {
             Serial.print("[ NG ] file not exists: ");
-        }
+
         Serial.println(file.get_filename().c_str());
     }
 
-    wifi_begin(env::access_points);
+    // wifi_begin(env::access_points);
 
     mdns_begin("pico");    // http://pico.local
 
@@ -49,10 +66,7 @@ void setup()
                                         return { 200, "application/json", R"({ "status": "OK" })" };
                                     }
                                     else
-                                    {
-                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" };
-                                    }
-                                });
+                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" }; });
 
     for (auto&& file : control_webpage)
     {
@@ -61,17 +75,25 @@ void setup()
                                         if (const auto all_line_opt = file.read_all_line())
                                             return { 200, "text/html", *all_line_opt };
                                         else
-                                            return { 500, "text/html", "server internal error. \n file open failed." };
-                                    });
+                                            return { 500, "text/html", "server internal error. \n file open failed." }; });
     }
+
+    stepper.begin();
 }
 
 void loop()
 {
-    // executor.execute(Overload{
-    //         [](CommandHome) -> bool { std::cout << "CommandHome" << std::endl; return false; },
-    //         [](CommandMove) -> bool { std::cout << "CommandMove" << std::endl; return false; },
-    //     });
+    executor.execute(Overload{
+        [](CommandHome) -> bool
+        {
+            return left_air_cylinder.homing_update() && stepper.homing_update();
+        },
+        [](CommandMove) -> bool
+        {
+            std::cout << "CommandMove" << std::endl;
+            return false;
+        },
+    });
 
     http_server_update();
     mdns_update();
