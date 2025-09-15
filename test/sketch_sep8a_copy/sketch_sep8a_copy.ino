@@ -8,10 +8,10 @@
 
 
 AccelStepper steppers[]{
-  // AccelStepper{ AccelStepper::DRIVER, 28, 27 },  // エアL step dir
+  AccelStepper{ AccelStepper::DRIVER, 13, 12 },  // エアL step dir a
   // AccelStepper{ AccelStepper::DRIVER, 0, 1 },    // エアR step dir
-  // AccelStepper{ AccelStepper::DRIVER, 14, 15 },  // X step dir
-  AccelStepper{ AccelStepper::DRIVER, 26, 22 },  // Z step dir
+  // AccelStepper{ AccelStepper::DRIVER, 14, 15 },  // X step dir ok
+  // AccelStepper{ AccelStepper::DRIVER, 26, 22 },  // Z step dir
   // AccelStepper{ AccelStepper::DRIVER, 21, 20 },  // Y step dir
 }; 
 
@@ -31,10 +31,10 @@ void setup() {
   //   stepper_group.addStepper(stepper);
   // }
 
-  pinMode(4, INPUT_PULLUP);
+  pinMode(2, INPUT_PULLUP);
 }
 
-// stepper1.runToNewPosition(500);
+// stepper1.runToNewPosition(5000);
 
 void loop() {
 
@@ -45,16 +45,20 @@ void loop() {
   case 0:
     if (Serial.available())
     {
-      Serial.read();
-      Serial.println("call");
-      ++s;
+      auto str = Serial.readStringUntil('\n');
+      if (str == "home")
+      {
+        ++s;
+      }
     }
     break;
   
   case 1:
-    steppers[0].setSpeed(-500);
+    steppers[0].setAcceleration(3000);
+    steppers[0].setMaxSpeed(10000);
+    steppers[0].setSpeed(-5000);
     steppers[0].runSpeed();
-    if (not digitalRead(4))
+    if (not digitalRead(2))
     {
       ++s;
       steppers[0].setCurrentPosition(0);
@@ -62,9 +66,9 @@ void loop() {
     break;
   
   case 2:
-    steppers[0].setAcceleration(10000);
-    steppers[0].setMaxSpeed(500);
-    steppers[0].moveTo(4000);
+    steppers[0].setAcceleration(15000);
+    steppers[0].setMaxSpeed(5000);
+    steppers[0].moveTo(10000);
     if (steppers[0].run() == false) ++s;
     break;
   
@@ -80,7 +84,7 @@ void loop() {
   // {
   //   Serial.println("1");
   //   long positions[2];
-  //   positions[0] = 500;
+  //   positions[0] = 5000;
   //   positions[1] = 50;
   //   stepper_group.moveTo(positions);
   //   delay(1000);
@@ -89,11 +93,10 @@ void loop() {
   // {
   //   Serial.println("2");
   //   long positions[2];
-  //   positions[0] = -500;
+  //   positions[0] = -5000;
   //   positions[1] = 100;
   //   stepper_group.moveTo(positions);
   //   stepper_group.runSpeedToPosition();  // Blocks until all are in position
   //   delay(1000);
   // }
 }
-

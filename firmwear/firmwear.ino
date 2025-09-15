@@ -83,17 +83,17 @@ void setup()
 
 void loop()
 {
-    executor.execute(Overload{
-        [](CommandHome) -> bool
-        {
-            return left_air_cylinder.homing_update() && stepper.homing_update();
-        },
-        [](CommandMove) -> bool
-        {
-            std::cout << "CommandMove" << std::endl;
-            return false;
-        },
-    });
+    // executor.execute(Overload{
+    //     [](CommandHome) -> bool
+    //     {
+    //         return left_air_cylinder.homing_update() && stepper.homing_update();
+    //     },
+    //     [](CommandMove) -> bool
+    //     {
+    //         std::cout << "CommandMove" << std::endl;
+    //         return false;
+    //     },
+    // });
 
     http_server_update();
     mdns_update();
