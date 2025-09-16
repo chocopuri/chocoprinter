@@ -14,69 +14,146 @@ static MultiStepper stepper_group;    // 動作を同期させるやつ
 
 static StepperMotorHomeableSynchronizable stepper{
     stepper_group,
-    AccelStepper{ AccelStepper::DRIVER, 0, 1 },
-    LimitSwitch{ 2 },
-    2000,    // [pulse/rev]
-};
-
-static AirCylinder left_air_cylinder{
-    StepperMotorHomeableSynchronizable{
-        stepper_group,
-        AccelStepper{ AccelStepper::DRIVER, 0, 1 },
-        LimitSwitch{ 2 },
-        2000,    // [pulse/rev]
+    SteppingMotor {
+        AccelStepper{ AccelStepper::DRIVER, 14, 15 },
+        Direction::forward,
+        200 * 8,  // [pulse/rev]
     },
-    0.25,    // [mL/rev]
+    LimitSwitch{ 2 },
+    HomingConfig {
+        .approach_switch_speed = 2,
+        .approach_switch_acceleration = 10,
+        .leave_switch_distance = -3,
+        .leave_switch_speed = 2,
+        .leave_switch_acceleration = 10,
+    },
 };
 
-static file control_webpage[]{
-    file{ "index.html" },
-    file{ "style.css" },
-    file{ "script.js" },
-};
+// static StepperMotorHomeableSynchronizable x_axsis{
+//     stepper_group,
+//     SteppingMotor {
+//         AccelStepper{ AccelStepper::DRIVER, 14, 15 },
+//         Direction::forward,
+//         200 * 8,  // [pulse/rev]
+//     },
+//     LimitSwitch{ 2 },
+//     HomingConfig {
+//         .approach_switch_speed = 2,
+//         .approach_switch_acceleration = 10,
+//         .leave_switch_distance = -3,
+//         .leave_switch_speed = 2,
+//         .leave_switch_acceleration = 10,
+//     },
+// };
+// static StepperMotorHomeableSynchronizable right_air_cylinder{
+//     stepper_group,
+//     SteppingMotor {
+//         AccelStepper{ AccelStepper::DRIVER, 0, 1 },
+//         Direction::forward,
+//         200 * 8,  // [pulse/rev]
+//     },
+//     LimitSwitch{ 6 },
+//     HomingConfig {
+//         .approach_switch_speed = -2,
+//         .approach_switch_acceleration = 10,
+//         .leave_switch_distance = 3,
+//         .leave_switch_speed = 2,
+//         .leave_switch_acceleration = 10,
+//     },
+// };
+
+// static StepperMotorHomeableSynchronizable left_air_cylinder{
+//     stepper_group,
+//     SteppingMotor {
+//         AccelStepper{ AccelStepper::DRIVER, 13, 12 },
+//         Direction::forward,
+//         200 * 8,  // [pulse/rev]
+//     },
+//     LimitSwitch{ 5 },
+//     HomingConfig {
+//         .approach_switch_speed = -2,
+//         .approach_switch_acceleration = 10,
+//         .leave_switch_distance = 3,
+//         .leave_switch_speed = 2,
+//         .leave_switch_acceleration = 10,
+//     },
+// };
+
+// static StepperMotorHomeableSynchronizable z_axsis{
+//     stepper_group,
+//     SteppingMotor {
+//         AccelStepper{ AccelStepper::DRIVER, 26, 22 },
+//         Direction::forward,
+//         200 * 8,  // [pulse/rev]
+//     },
+//     LimitSwitch{ 4 },
+//     HomingConfig {
+//         .approach_switch_speed = -0.5,
+//         .approach_switch_acceleration = 10,
+//         .leave_switch_distance = 0.93,
+//         .leave_switch_speed = 0.5,
+//         .leave_switch_acceleration = 10,
+//     },
+// };
+
+// static AirCylinder left_air_cylinder{
+//     StepperMotorHomeableSynchronizable{
+//         stepper_group,
+//         AccelStepper{ AccelStepper::DRIVER, 0, 1 },
+//         LimitSwitch{ 2 },
+//         2000,    // [pulse/rev]
+//     },
+//     0.25,    // [mL/rev]
+// };
+
+// static file control_webpage[]{
+//     file{ "index.html" },
+//     file{ "style.css" },
+//     file{ "script.js" },
+// };
 
 void setup()
 {
     delay(1000);
-    pinMode(LED_BUILTIN, OUTPUT);
+    // pinMode(LED_BUILTIN, OUTPUT);
 
-    sd_card_begin();
+    // sd_card_begin();
 
-    for (auto&& file : control_webpage)
-    {
-        if (file.exists())
-            Serial.print("[ OK ] file exists: ");
-        else
-            Serial.print("[ NG ] file not exists: ");
+    // for (auto&& file : control_webpage)
+    // {
+    //     if (file.exists())
+    //         Serial.print("[ OK ] file exists: ");
+    //     else
+    //         Serial.print("[ NG ] file not exists: ");
 
-        Serial.println(file.get_filename().c_str());
-    }
+    //     Serial.println(file.get_filename().c_str());
+    // }
 
-    // wifi_begin(env::access_points);
+    // // wifi_begin(env::access_points);
 
-    mdns_begin("pico");    // http://pico.local
+    // mdns_begin("pico");    // http://pico.local
 
-    http_server_begin();
+    // http_server_begin();
 
-    http_server_add_post_handler("/command", [](std::string_view sv) -> HttpResponse
-                                 {
-                                    if (const auto parsed = parse_commands(std::string{ sv }))
-                                    {
-                                        executor.replace_instructions(*parsed);
-                                        return { 200, "application/json", R"({ "status": "OK" })" };
-                                    }
-                                    else
-                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" }; });
+    // http_server_add_post_handler("/command", [](std::string_view sv) -> HttpResponse
+    //                              {
+    //                                 if (const auto parsed = parse_commands(std::string{ sv }))
+    //                                 {
+    //                                     executor.replace_instructions(*parsed);
+    //                                     return { 200, "application/json", R"({ "status": "OK" })" };
+    //                                 }
+    //                                 else
+    //                                     return { 400, "application/json", R"({ "status": "Failed to parse command." })" }; });
 
-    for (auto&& file : control_webpage)
-    {
-        http_server_add_get_handler("/" + file.get_filename(), [&file]() -> HttpResponse
-                                    {
-                                        if (const auto all_line_opt = file.read_all_line())
-                                            return { 200, "text/html", *all_line_opt };
-                                        else
-                                            return { 500, "text/html", "server internal error. \n file open failed." }; });
-    }
+    // for (auto&& file : control_webpage)
+    // {
+    //     http_server_add_get_handler("/" + file.get_filename(), [&file]() -> HttpResponse
+    //                                 {
+    //                                     if (const auto all_line_opt = file.read_all_line())
+    //                                         return { 200, "text/html", *all_line_opt };
+    //                                     else
+    //                                         return { 500, "text/html", "server internal error. \n file open failed." }; });
+    // }
 
     stepper.begin();
 }
@@ -95,8 +172,10 @@ void loop()
     //     },
     // });
 
-    http_server_update();
-    mdns_update();
+    // http_server_update();
+    // mdns_update();
 
-    digitalWrite(LED_BUILTIN, millis() % 500 > 300);
+    stepper.homing_update();
+
+    // digitalWrite(LED_BUILTIN, millis() % 500 > 300);
 }

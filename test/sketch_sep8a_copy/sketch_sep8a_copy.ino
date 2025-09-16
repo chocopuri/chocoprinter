@@ -8,11 +8,11 @@
 
 
 AccelStepper steppers[]{
-  AccelStepper{ AccelStepper::DRIVER, 13, 12 },  // エアL step dir a
-  // AccelStepper{ AccelStepper::DRIVER, 0, 1 },    // エアR step dir
+  // AccelStepper{ AccelStepper::DRIVER, 13, 12 },  // エアL step dir ok
+  // AccelStepper{ AccelStepper::DRIVER, 0, 1 },    // エアR step dir ok
   // AccelStepper{ AccelStepper::DRIVER, 14, 15 },  // X step dir ok
-  // AccelStepper{ AccelStepper::DRIVER, 26, 22 },  // Z step dir
-  // AccelStepper{ AccelStepper::DRIVER, 21, 20 },  // Y step dir
+  AccelStepper{ AccelStepper::DRIVER, 26, 22 },  // Z step dir ok
+  // AccelStepper{ AccelStepper::DRIVER, 21, 20 },  // Y step dir ok
 }; 
 
 // Up to 10 steppers can be handled as a group by MultiStepper
@@ -68,7 +68,7 @@ void loop() {
   case 2:
     steppers[0].setAcceleration(15000);
     steppers[0].setMaxSpeed(5000);
-    steppers[0].moveTo(10000);
+    steppers[0].moveTo(200);
     if (steppers[0].run() == false) ++s;
     break;
   

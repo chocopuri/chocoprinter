@@ -32,3 +32,22 @@ struct Vec3
         return os << "{ " << self.x << " " << self.y << " " << self.z << " }"; 
     }
 };
+
+enum class Direction
+{
+    forward,
+    backward,
+};
+
+inline int direction_to_sign(Direction dir)
+{
+    switch (dir)
+    {
+    case Direction::forward:
+        return 1;
+    case Direction::backward:
+        return -1;
+    default:
+        return 0; // unreachable
+    }
+}
