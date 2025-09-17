@@ -27,6 +27,10 @@ class SteppingMotor
     int pulse_per_rev;
 
 public:
+    /// @brief 
+    /// @param driver 
+    /// @param direction 
+    /// @param pulse_per_rev 一回転あたり何パルス必要か
     SteppingMotor(AccelStepper&& driver, Direction direction, int pulse_per_rev)
         : driver{ std::move(driver) }
         , direction{ direction }
@@ -160,10 +164,13 @@ public:
 
     /// @brief 目標値を設定 実際の動作はsync_group参照先のオブジェクト経由で行う
     /// @param absolute_position_rev 何回転するか
-    void set_target_position_rev(float absolute_position_rev)
+    void set_target_position(float absolute_position_rev)
     {
         if (homing_sequence == -1)
         {
+            Serial.println(absolute_position_rev);
+            driver.set_acceleration(config.approach_switch_acceleration);
+            driver.set_max_speed(abs(config.approach_switch_speed));
             driver.set_absolute_target_position(absolute_position_rev);
         }
     }

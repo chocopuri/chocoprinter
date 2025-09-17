@@ -1,3 +1,13 @@
+//
+//    ファームウエア
+//
+//    ボード
+//
+//    ライブラリ
+//       https://github.com/waspinator/AccelStepper
+//
+
+
 #include "src/network/wifi.hpp"
 #include "src/network/mdns.hpp"
 #include "src/network/http_server.hpp"
@@ -5,14 +15,67 @@
 #include "src/executor/executor.hpp"
 #include "src/file/file.hpp"
 #include "src/hardwear/stepper_motor_homeable_synchronizable.hpp"
+#include "src/hardwear/z_axis.hpp"
+#include "src/hardwear/air_cylinder.hpp"
+
 
 // #include "env.hpp"
 
-static Executor<Command> executor;
+// static Executor<Command> executor;
+struct A{};
+struct B{};
+struct C{};
+static Executor<std::variant<A, B, C>> executor;
 
 static MultiStepper stepper_group;    // 動作を同期させるやつ
 
-static StepperMotorHomeableSynchronizable stepper{
+// 調整済み
+ZAxis z {
+    StepperMotorHomeableSynchronizable {
+        stepper_group,
+        SteppingMotor {
+            AccelStepper { AccelStepper::DRIVER, 26, 22 },
+            Direction::forward,
+            200 * 8,  // [pulse/rev]
+        },
+        LimitSwitch { 4 },
+        HomingConfig {
+            .approach_switch_speed = -0.5,
+            .approach_switch_acceleration = 10,
+            .leave_switch_distance = 0.93,
+            .leave_switch_speed = 0.5,
+            .leave_switch_acceleration = 10,
+        },
+    },
+    14 * M_PI,  // mm/rev
+    40,  // white_zero_pos_mm
+    40,  // black_zero_pos_mm
+    80,  // z_limit_mm
+};
+
+// AirCylinder left_air_cylinder {
+//     StepperMotorHomeableSynchronizable {
+//         stepper_group,
+//         SteppingMotor {
+//             AccelStepper{ AccelStepper::DRIVER, 13, 12 },
+//             Direction::forward,
+//             200 * 8,  // [pulse/rev]
+//         },
+//         LimitSwitch{ 5 },
+//         HomingConfig {
+//             .approach_switch_speed = -2,
+//             .approach_switch_acceleration = 10,
+//             .leave_switch_distance = 3,
+//             .leave_switch_speed = 2,
+//             .leave_switch_acceleration = 10,
+//         },
+//     },
+//     1 / 3.5,  // mL/rev (ねじ山間隔1mm, 3.5mmで1mL)
+//     20,
+// };
+
+
+static StepperMotorHomeableSynchronizable x_axsis{
     stepper_group,
     SteppingMotor {
         AccelStepper{ AccelStepper::DRIVER, 14, 15 },
@@ -28,23 +91,6 @@ static StepperMotorHomeableSynchronizable stepper{
         .leave_switch_acceleration = 10,
     },
 };
-
-// static StepperMotorHomeableSynchronizable x_axsis{
-//     stepper_group,
-//     SteppingMotor {
-//         AccelStepper{ AccelStepper::DRIVER, 14, 15 },
-//         Direction::forward,
-//         200 * 8,  // [pulse/rev]
-//     },
-//     LimitSwitch{ 2 },
-//     HomingConfig {
-//         .approach_switch_speed = 2,
-//         .approach_switch_acceleration = 10,
-//         .leave_switch_distance = -3,
-//         .leave_switch_speed = 2,
-//         .leave_switch_acceleration = 10,
-//     },
-// };
 // static StepperMotorHomeableSynchronizable right_air_cylinder{
 //     stepper_group,
 //     SteppingMotor {
@@ -154,8 +200,10 @@ void setup()
     //                                     else
     //                                         return { 500, "text/html", "server internal error. \n file open failed." }; });
     // }
-
-    stepper.begin();
+    executor.replace_instructions({ A{}, B{}, C{} });
+    // left_air_cylinder.begin();
+    x_axsis.begin();
+    z.begin();
 }
 
 void loop()
@@ -171,11 +219,33 @@ void loop()
     //         return false;
     //     },
     // });
+    executor.execute(Overload{
+        [](A) -> bool
+        {
+            Serial.println("A");
+            return x_axsis.homing_update();
+            // return true;
+        },
+        [](B) -> bool { return z.homing_update(); },
+        [](C) -> bool
+        {
+            Serial.println("B");
+
+            z.set_black_position(0);
+            // z.set_white_position(0);
+
+            x_axsis.set_target_position(5);
+            
+            // left_air_cylinder.set_air_volume(10);
+
+
+            Serial.print(stepper_group.run() ? "run" : "end");
+            return false;
+        },
+    });
 
     // http_server_update();
     // mdns_update();
-
-    stepper.homing_update();
 
     // digitalWrite(LED_BUILTIN, millis() % 500 > 300);
 }
