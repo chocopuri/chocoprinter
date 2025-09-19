@@ -51,7 +51,6 @@ public:
     // 原点どり終了で true を返す
     bool homing_update()
     {
-        Serial.println(homing_sequence);
         switch (homing_sequence)
         {
         case -1:    // すでに原点どり済  //だが再度原点どりするケース
@@ -102,7 +101,6 @@ public:
     {
         if (homing_sequence == -1)
         {
-            Serial.println(absolute_position_rev);
             driver.set_acceleration(config.approach_switch_acceleration);
             driver.set_max_speed(abs(config.approach_switch_speed));
             driver.set_absolute_target_position_sync(absolute_position_rev);

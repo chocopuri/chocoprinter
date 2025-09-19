@@ -220,16 +220,16 @@ void setup()
     //                                     else
     //                                         return { 500, "text/html", "server internal error. \n file open failed." }; });
     // }
-    executor.replace_instructions({
-        *parse_command("home"),
-        *parse_command("move black 0 0 0 0 inject"),
-        *parse_command("move black 0 100 0 1 inject"),
-        *parse_command("move white 100 100 0 1 inject"),
-        *parse_command("move white 100 0 0 1 inject"),
-        *parse_command("move black 0 0 0 0 inject"),
-        *parse_command("move black 100 100 0 1 inject"),
-        *parse_command("move white 10.1 20.1 30.1 1.1 inject"),
-    });
+    // executor.replace_instructions({
+    //     *parse_command("home"),
+    //     *parse_command("move black 0 0 0 0 inject"),
+    //     *parse_command("move black 0 100 0 1 inject"),
+    //     *parse_command("move white 100 100 0 1 inject"),
+    //     *parse_command("move white 100 0 0 1 inject"),
+    //     *parse_command("move black 0 0 0 0 inject"),
+    //     *parse_command("move black 100 100 0 1 inject"),
+    //     *parse_command("move white 10.1 20.1 30.1 1.1 inject"),
+    // });
     // left_air_cylinder.begin();
 
     x_axis.begin();
