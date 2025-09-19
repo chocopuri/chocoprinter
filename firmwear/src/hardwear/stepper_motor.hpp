@@ -21,7 +21,7 @@ public:
     bool run()
     {
         group.moveTo(positions);
-        return group.run();
+        return not group.run();
     }
 };
 
@@ -32,7 +32,7 @@ class SteppingMotor
     Direction direction;
     int pulse_per_rev;
 
-    long* sync_time_pos_ptr = nullptr;    // 動作を同期させるときの位置情報へのポインタ
+    long* sync_time_pos_ptr = nullptr;    // 動作を同期させるとき用の位置情報へのポインタ 実体は StepperSyncGroup が持つ
 
     friend class StepperSyncGroup;
 

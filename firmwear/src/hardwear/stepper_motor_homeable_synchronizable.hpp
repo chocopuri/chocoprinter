@@ -54,7 +54,9 @@ public:
         Serial.println(homing_sequence);
         switch (homing_sequence)
         {
-        // case -1:    // すでに原点どり済だが再度原点どりするケース
+        case -1:    // すでに原点どり済  //だが再度原点どりするケース
+            return true;
+            
         case 0:    // 起動時
             homing_sequence = 1;
             driver.set_acceleration(config.approach_switch_acceleration);
