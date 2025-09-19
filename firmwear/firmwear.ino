@@ -74,23 +74,44 @@ ZAxis z {
 //     20,
 // };
 
-
-static StepperMotorHomeableSynchronizable x_axsis{
+// 調整済み
+// static StepperMotorHomeableSynchronizable x_axsis{
+//     stepper_group,
+//     SteppingMotor {
+//         AccelStepper{ AccelStepper::DRIVER, 14, 15 },
+//         Direction::forward,
+//         200 * 8,  // [pulse/rev]
+//     },
+//     LimitSwitch{ 2 },
+//     HomingConfig {
+//         .approach_switch_speed = 2,
+//         .approach_switch_acceleration = 10,
+//         .leave_switch_distance = -3,
+//         .leave_switch_speed = 2,
+//         .leave_switch_acceleration = 10,
+//     },
+// };
+static StepperMotorHomeableSynchronizable y_axsis{
     stepper_group,
     SteppingMotor {
-        AccelStepper{ AccelStepper::DRIVER, 14, 15 },
+        AccelStepper{ AccelStepper::DRIVER, 21, 20 },
         Direction::forward,
         200 * 8,  // [pulse/rev]
     },
-    LimitSwitch{ 2 },
+    LimitSwitch{ 3 },
     HomingConfig {
         .approach_switch_speed = 2,
         .approach_switch_acceleration = 10,
-        .leave_switch_distance = -3,
+        .leave_switch_distance = -0.1,
         .leave_switch_speed = 2,
         .leave_switch_acceleration = 10,
     },
 };
+  // AccelStepper{ AccelStepper::DRIVER, 13, 12 },  // エアL step dir ok
+  // AccelStepper{ AccelStepper::DRIVER, 0, 1 },    // エアR step dir ok
+//   AccelStepper{ AccelStepper::DRIVER, 14, 15 },  // X step dir ok
+//   AccelStepper{ AccelStepper::DRIVER, 26, 22 },  // Z step dir ok
+  // AccelStepper{ AccelStepper::DRIVER, 21, 20 },  // Y step dir ok
 // static StepperMotorHomeableSynchronizable right_air_cylinder{
 //     stepper_group,
 //     SteppingMotor {
@@ -202,7 +223,7 @@ void setup()
     // }
     executor.replace_instructions({ A{}, B{}, C{} });
     // left_air_cylinder.begin();
-    x_axsis.begin();
+    y_axsis.begin();
     z.begin();
 }
 
@@ -223,7 +244,7 @@ void loop()
         [](A) -> bool
         {
             Serial.println("A");
-            return x_axsis.homing_update();
+            return y_axsis.homing_update();
             // return true;
         },
         [](B) -> bool { return z.homing_update(); },
@@ -234,7 +255,7 @@ void loop()
             z.set_black_position(0);
             // z.set_white_position(0);
 
-            x_axsis.set_target_position(5);
+            y_axsis.set_target_position(5);
             
             // left_air_cylinder.set_air_volume(10);
 
