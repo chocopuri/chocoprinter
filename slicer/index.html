@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+Access-Control-Allow-Methods: PUT, DELETE, PATCH
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <canvas id="board" class="left-content"></canvas>
+    <div class="right">
+      ctrl
+      <button onclick="onSendButtonClicked()">送信</button>
+      <br>
+      change
+      <button onclick="changeColor()">色切り替え</button>
+      <br>
+      change
+      <button onclick="changeColor()">色切り替え</button>
+    </div>
+  </div>
+  <script>
+    /* マスの描画
+    
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    const ctx = canvas.getContext('2d');
+
+    const squareSize = 10; // 四角形のサイズ
+    const spacing = 1;    // 四角形の間の間隔
+    const startX = 10;     // 最初の四角形のX座標
+    const startY = 10;     // 最初の四角形のY座標
+
+    // 四角形を横に並べる例
+    for (let i = 0; i < 32; i++) {
+      for (let j = 0; j < 32; j++) {
+      const x = startX + i * (squareSize + spacing);
+      const y = startY + j * (squareSize + spacing);
+
+      ctx.fillStyle = 'blue'; // 四角の色を設定
+      ctx.fillRect(x, y, squareSize, squareSize); // 塗りつぶされた四角を描画
+      }
+    }
+    */
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    let command = [];
+    let list = [];
+
+    window.addEventListener("resize", () => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      list = [];
+    })
+
+    canvas.addEventListener('click', (event) => {
+      // クリックイベントの処理
+      const canvasRect = canvas.getBoundingClientRect(); // Canvasのページ上の位置とサイズを取得
+      const mousePos = {
+        x: event.pageX - canvasRect.left, // Canvas左上からのX座標
+        y: event.pageY - canvasRect.top   // Canvas左上からのY座標
+      };
+
+      
+
+      list.push({ x: mousePos.x, y: mousePos.y });
+      console.log(list[list.length-1].x);
+      let color = 'white'
+      let move = 'inject'
+
+      command.push(`move ${color} ${list[list.length-1].x} ${list[list.length-1].y} 10 20 ${move}`)
+      // command.push('move' + list[list.length-1].x)
+
+      ctx.beginPath();
+      ctx.moveTo(list[0].x, list[0].y);
+      for (let i = 1; i < list.length; i++) {
+        ctx.lineTo(list[i].x, list[i].y);
+      }
+
+      ctx.strokeStyle = 'blue'; // 青い線
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      drawDot(mousePos.x, mousePos.y);
+    });
+
+    function onSendButtonClicked() {
+      command.push(`move white 0 0 10 20 stop`)
+      console.log(command);
+      fetch('http://pico.local/command', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(list)
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Success:', data);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+      // ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas全体をクリア
+    }
+
+    function drawDot(x, y) {
+      // 点の色とサイズを設定
+      ctx.fillStyle = 'red'; // 点の色を赤に設定
+      ctx.lineWidth = 1;   // 点の太さを設定
+
+      // 円（点）を描画
+      ctx.beginPath(); // パスの開始
+      // ctx.arc(x, y, 5, 0, Math.PI * 2, true); // x, y座標, 半径, 開始角度, 終了角度, 描画方向(trueで反時計回り)
+      ctx.arc(x, y, 5, 0, Math.PI * 2, true); // x, y座標, 半径, 開始角度, 終了角度, 描画方向(trueで反時計回り)
+      ctx.fill(); // 塗りつぶす
+    }
+
+  </script>
+  <div id="coords">X: --, Y: --</div>
+
+<script>
+  // 座標を表示する要素を取得
+  const coordsDiv = document.getElementById('coords');
+
+  // マウス移動時に発生するイベントリスナーを設定
+  document.addEventListener('mousemove', (event) => {
+    // event.clientX と event.clientY で、ビューポート内での座標を取得
+    const x = event.clientX;
+    const y = event.clientY;
+
+    // event.pageX と event.pageY で、文書全体での座標を取得
+    // const pageX = event.pageX;
+    // const pageY = event.pageY;
+
+    // 座標を表示する要素のテキストを更新
+    coordsDiv.textContent = `X: ${x}, Y: ${y}`;
+  });
+</script>
+</body>
+
+</html>
