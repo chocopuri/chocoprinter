@@ -27,7 +27,7 @@ struct B{};
 struct C{};
 static Executor<std::variant<A, B, C>> executor;
 
-static MultiStepper stepper_group;    // 動作を同期させるやつ
+static StepperSyncGroup stepper_group;    // 動作を同期させるやつ
 
 // 調整済み
 ZAxis z {
