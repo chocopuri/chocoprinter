@@ -30,6 +30,28 @@ std::ostream& operator<<(std::ostream& os, const Command& self)
                       self);
 }
 
+bool operator==(const Command& l, const Command& r)
+{
+    if (l.index() != r.index())
+        return false;
+
+    return std::visit(
+        [](auto&& left, auto&& right) -> bool
+        {
+            using L = std::decay_t<decltype(left)>;
+            using R = std::decay_t<decltype(right)>;
+            if constexpr (std::is_same_v<L, R>)
+            {
+                return left == right;
+            }
+            else
+            {
+                return false;
+            }
+        },
+        l, r);
+}
+
 template <typename T>
 std::optional<T> read(std::istream& is)
 {

@@ -28,6 +28,7 @@ struct CommandMove
 
 using Command = std::variant<CommandHome, CommandMove>;
 std::ostream& operator<<(std::ostream& os, const Command& self);
+bool operator==(const Command& l, const Command& r);
 
 std::optional<Command> parse_command(const std::string& command_text);
 
