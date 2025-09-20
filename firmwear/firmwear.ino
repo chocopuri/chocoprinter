@@ -1,9 +1,10 @@
 //
-//    ファームウエア
+//    チョコレート3Dプリンタ ファームウエア
 //
-//    ボード
+//    依存ボード：
+//       https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
 //
-//    ライブラリ
+//    依存ライブラリ：
 //       https://github.com/waspinator/AccelStepper
 //
 
@@ -23,21 +24,10 @@
 #include "env.hpp"
 
 static Executor<Command> executor;
-// struct A
-// {
-// };
-// struct B
-// {
-// };
-// struct C
-// {
-// };
-// static Executor<std::variant<A, B, C>> executor;
 
 static StepperSyncGroup stepper_group;    // 動作を同期させるやつ
 
-// 調整済み
-ZAxis z_axis{
+static ZAxis z_axis{
     StepperMotorHomeableSynchronizable{
         stepper_group,
         SteppingMotor{
@@ -82,7 +72,7 @@ ZAxis z_axis{
 // };
 
 // 調整済み
-XAxis x_axis{
+static XAxis x_axis{
     StepperMotorHomeableSynchronizable{
         stepper_group,
         SteppingMotor{
@@ -103,7 +93,7 @@ XAxis x_axis{
     130,          // x_limit_mm
 };
 
-YAxis y_axis{
+static YAxis y_axis{
     StepperMotorHomeableSynchronizable{
         stepper_group,
         SteppingMotor{
@@ -178,12 +168,41 @@ YAxis y_axis{
 //     file{ "script.js" },
 // };
 
+static file access_point_file{ "access_point.csv" };
+
+std::vector<AccessPoint> load_access_points()
+{
+    std::vector<AccessPoint> aps{};
+
+    if (const auto all_line_opt = access_point_file.read_all_line())
+    {
+        std::istringstream iss{ *all_line_opt };
+        std::string line;
+
+        while (std::getline(iss, line))
+        {
+            const auto comma_pos = line.find(',');
+            if (comma_pos == std::string::npos)
+                continue;
+
+            const auto ssid = line.substr(0, comma_pos);
+            const auto pass = line.substr(comma_pos + 1);
+
+            if (ssid.size() == 0 || pass.size() == 0)
+                continue;
+
+            aps.push_back(AccessPoint{ ssid.c_str(), pass.c_str() });
+        }
+    }
+
+    return aps;
+}
+
 void setup()
 {
     delay(1000);
-    // pinMode(LED_BUILTIN, OUTPUT);
 
-    // sd_card_begin();
+    sd_card_begin();
 
     // for (auto&& file : control_webpage)
     // {
@@ -196,20 +215,22 @@ void setup()
     // }
 
     wifi_begin(env::access_points);
+    // wifi_begin(load_access_points());
 
     mdns_begin("pico");    // http://pico.local
 
     http_server_begin();
 
-    http_server_add_post_handler("/command", [](std::string_view sv) -> HttpResponse
+    http_server_add_post_handler("/command", [](std::string_view command_text) -> HttpResponse
                                  {
-                                    if (const auto parsed = parse_commands(std::string{ sv }))
+                                    if (const auto parsed = parse_commands(std::string{ command_text }))
                                     {
                                         executor.replace_instructions(*parsed);
                                         return { 200, "application/json", R"({ "status": "OK" })" };
                                     }
                                     else
-                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" }; });
+                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" };
+                                });
 
     // for (auto&& file : control_webpage)
     // {
@@ -220,16 +241,7 @@ void setup()
     //                                     else
     //                                         return { 500, "text/html", "server internal error. \n file open failed." }; });
     // }
-    // executor.replace_instructions({
-    //     *parse_command("home"),
-    //     *parse_command("move black 0 0 0 0 inject"),
-    //     *parse_command("move black 0 100 0 1 inject"),
-    //     *parse_command("move white 100 100 0 1 inject"),
-    //     *parse_command("move white 100 0 0 1 inject"),
-    //     *parse_command("move black 0 0 0 0 inject"),
-    //     *parse_command("move black 100 100 0 1 inject"),
-    //     *parse_command("move white 10.1 20.1 30.1 1.1 inject"),
-    // });
+    
     // left_air_cylinder.begin();
 
     x_axis.begin();
@@ -267,9 +279,8 @@ void loop()
             return stepper_group.run();
         },
     });
-    
+
     http_server_update();
     mdns_update();
-
-    // digitalWrite(LED_BUILTIN, millis() % 500 > 300);
+    wifi_update();
 }
