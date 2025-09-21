@@ -103,7 +103,7 @@ Access-Control-Allow-Methods: PUT, DELETE, PATCH
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(list)
+        body: list.join('\n')
       })
         .then(response => response.json())
         .then(data => {

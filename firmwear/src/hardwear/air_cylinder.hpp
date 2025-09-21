@@ -29,6 +29,6 @@ public:
 
     void set_air_volume(float volume_ml)
     {
-        motor.set_target_position(volume_ml / ml_per_rev, 5, 5);
+        motor.set_target_position(volume_ml / ml_per_rev, 1, 1);
     }
 };

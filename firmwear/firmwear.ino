@@ -261,15 +261,15 @@ void loop1()
                 if (cmd_move.is_inject)
                     white_air_cylinder.set_air_volume(move_lenght / 20);
                 else
-                    white_air_cylinder.set_air_volume(0);
+                    white_air_cylinder.set_air_volume(-move_lenght / 30);
             }
             else
             {
                 z_axis.set_white_position(cmd_move.pos.z);
                 if (cmd_move.is_inject)
-                    white_air_cylinder.set_air_volume(move_lenght / 20);
+                    white_air_cylinder.set_air_volume(move_lenght / 2);
                 else
-                    white_air_cylinder.set_air_volume(0);
+                    white_air_cylinder.set_air_volume(-move_lenght / 30);
             }
 
             return stepper_group.run();
