@@ -22,10 +22,7 @@ void http_server_add_post_handler(const std::string& endpoint, std::function<Htt
                     Serial.println(body);
                     Serial.println("[ OK ] response:");
                     Serial.println(res.content.c_str());
-
-                    g_server.sendHeader("Access-Control-Allow-Origin", "*");
-                    g_server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                    g_server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+                    
                     g_server.send(res.code, res.content_type.c_str(), res.content.c_str());
                 });
 

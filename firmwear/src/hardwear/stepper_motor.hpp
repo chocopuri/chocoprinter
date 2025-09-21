@@ -31,6 +31,7 @@ class SteppingMotor
     AccelStepper driver;
     Direction direction;
     int pulse_per_rev;
+    float max_speed_rev = 0;
 
     long* sync_time_pos_ptr = nullptr;    // 動作を同期させるとき用の位置情報へのポインタ 実体は StepperSyncGroup が持つ
 
@@ -55,7 +56,11 @@ public:
     }
     void set_max_speed(float max_speed_rev)
     {
-        driver.setMaxSpeed(max_speed_rev * pulse_per_rev);
+        if (this->max_speed_rev != max_speed_rev)
+        {
+            this->max_speed_rev = max_speed_rev;
+            driver.setMaxSpeed(max_speed_rev * pulse_per_rev);
+        }
     }
 
     // 位置制御系

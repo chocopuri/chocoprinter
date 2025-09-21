@@ -11,3 +11,5 @@ struct AccessPoint
 
 
 void wifi_begin(const std::vector<AccessPoint>& aps);
+
+void wifi_update();
