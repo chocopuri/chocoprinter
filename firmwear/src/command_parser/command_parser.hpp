@@ -7,10 +7,16 @@
 
 #include "../common/type.hpp"
 
-struct CommandHome
+struct CommandHomeGantry
 {
-    friend bool operator==(const CommandHome& l, const CommandHome& r);
-    friend std::ostream& operator<<(std::ostream& os, const CommandHome& self);
+    friend bool operator==(const CommandHomeGantry& l, const CommandHomeGantry& r);
+    friend std::ostream& operator<<(std::ostream& os, const CommandHomeGantry& self);
+};
+
+// エアーだけホーミング
+struct CommandHomeAir {
+    friend bool operator==(const CommandHomeAir& l, const CommandHomeAir& r);
+    friend std::ostream& operator<<(std::ostream& os, const CommandHomeAir& self);
 };
 
 
@@ -25,8 +31,17 @@ struct CommandMove
     friend std::ostream& operator<<(std::ostream& os, const CommandMove& self);
 };
 
+struct CommandAir
+{
+    Color color;
+    float volume_ml;
 
-using Command = std::variant<CommandHome, CommandMove>;
+    friend bool operator==(const CommandAir& l, const CommandAir& r);
+    friend std::ostream& operator<<(std::ostream& os, const CommandAir& self);
+};
+
+
+using Command = std::variant<CommandHomeGantry, CommandHomeAir, CommandMove, CommandAir>;
 std::ostream& operator<<(std::ostream& os, const Command& self);
 bool operator==(const Command& l, const Command& r);
 

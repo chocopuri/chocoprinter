@@ -2,12 +2,12 @@
 
 #include "command_parser.hpp"
 
-bool operator==(const CommandHome&, const CommandHome&)
+bool operator==(const CommandHomeGantry&, const CommandHomeGantry&)
 {
     return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const CommandHome&)
+std::ostream& operator<<(std::ostream& os, const CommandHomeGantry&)
 {
     return os << "home";
 }
@@ -20,6 +20,27 @@ bool operator==(const CommandMove& l, const CommandMove& r)
 std::ostream& operator<<(std::ostream& os, const CommandMove& self)
 {
     return os << "move { " << self.color << " " << self.pos << " " << self.speed << " " << (self.is_inject ? "inject" : "stop") << " }";
+}
+
+bool operator==(const CommandAir& l, const CommandAir& r)
+{
+    return l.color == r.color && l.volume_ml == r.volume_ml;
+}
+
+std::ostream& operator<<(std::ostream& os, const CommandAir& self)
+{
+    return os << "air { " << self.color << " " << self.volume_ml << " }";
+}
+
+
+bool operator==(const CommandHomeAir& l, const CommandHomeAir& r)
+{
+    return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const CommandHomeAir& self)
+{
+    return os << "homing_air";
 }
 
 
@@ -103,7 +124,7 @@ std::optional<Command> parse_command(const std::string& command_text)
 
     if (*command_type_str == "home")
     {
-        return CommandHome{};
+        return CommandHomeGantry{};
     }
 
     return std::nullopt;

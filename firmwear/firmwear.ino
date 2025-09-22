@@ -111,25 +111,30 @@ static AirCylinder white_air_cylinder{
         },
     },
     1 / 3.5,    // mL/rev (ねじ山間隔1mm, 3.5mmで1mL)
-    20,
+    27,
 };
 
 
-static StepperMotorHomeableSynchronizable black_air_cylinder{ // right
-    stepper_group,
-    SteppingMotor {
-        AccelStepper{ AccelStepper::DRIVER, 0, 1 },
-        Direction::forward,
-        200 * 8,  // [pulse/rev]
+static AirCylinder black_air_cylinder{
+    StepperMotorHomeableSynchronizable{
+        // right
+        stepper_group,
+        SteppingMotor{
+            AccelStepper{ AccelStepper::DRIVER, 0, 1 },
+            Direction::forward,
+            200 * 8,    // [pulse/rev]
+        },
+        LimitSwitch{ 6 },
+        HomingConfig{
+            .approach_switch_speed = -1.5,
+            .approach_switch_acceleration = 10,
+            .leave_switch_distance = 1,
+            .leave_switch_speed = 2,
+            .leave_switch_acceleration = 10,
+        },
     },
-    LimitSwitch{ 6 },
-    HomingConfig {
-        .approach_switch_speed = -1.5,
-        .approach_switch_acceleration = 10,
-        .leave_switch_distance = 1,
-        .leave_switch_speed = 2,
-        .leave_switch_acceleration = 10,
-    },
+    1 / 3.5,    // mL/rev (ねじ山間隔1mm, 3.5mmで1mL)
+    27,
 };
 
 // static file control_webpage[]{
@@ -189,15 +194,59 @@ void setup()
 
     http_server_begin();
 
-    http_server_add_post_handler("/command", [](std::string_view command_text) -> HttpResponse
-                                 {
-                                    if (const auto parsed = parse_commands(std::string{ command_text }))
-                                    {
-                                        executor.replace_instructions(*parsed);
-                                        return { 200, "application/json", R"({ "status": "OK" })" };
-                                    }
-                                    else
-                                        return { 400, "application/json", R"({ "status": "Failed to parse command." })" }; });
+    const auto command_receive_handler = [](std::string_view command_text) -> HttpResponse
+    {
+        const auto parsed_command = parse_commands(std::string{ command_text });
+
+        if (not parsed_command)
+            return { 400, "application/json", R"({ "status": "Failed to parse command." })" };
+
+        executor.replace_instructions({});    // 既存の命令をクリア
+
+        // ホーミングするときに吸気するためチョコレートが吸い込まれてしまう。なので動作直前ではなくチョコがセッティングされていないときに原点どりをしておく。
+        executor.push_instruction(CommandHomeAir{});
+
+        for (auto&& cmd : *parsed_command)
+        {
+            std::visit(Overload{
+                           [&](CommandHomeGantry)
+                           {
+                               executor.push_instruction(CommandHomeGantry{});
+                           },
+                           [&](const CommandMove& cmd_move)
+                           {
+                               static bool is_prev_inject = false;
+
+                               // 射出開始時にエアーを出し管内の圧を上げる (チョコが出るまでにラグがあるため)
+                               if (cmd_move.is_inject && not is_prev_inject)
+                               {
+                                   executor.push_instruction(CommandAir{ cmd_move.color, 5 });
+                               }
+
+                               executor.push_instruction(cmd_move);
+
+                               // 停止時にエアーを少し吸って管内の圧を下げる (チョコが垂れるのを防止するため)
+                               if (not cmd_move.is_inject && is_prev_inject)
+                               {
+                                   executor.push_instruction(CommandAir{ cmd_move.color, -2 });
+                               }
+
+                               is_prev_inject = cmd_move.is_inject;
+                           },
+                           [](CommandAir) {},    // パース段階で弾いているのでここには来ない
+                           [](CommandHomeAir) {},
+                       },
+                       cmd);
+        }
+
+        executor.restart();
+
+        return { 200, "application/json", R"({ "status": "OK" })" };
+
+        // clang format のバグ対策
+    };
+
+    http_server_add_post_handler("/command", command_receive_handler);
 
     // for (auto&& file : control_webpage)
     // {
@@ -229,19 +278,22 @@ void setup1()
 
 void loop1()
 {
-    
-    executor.execute(Overload{
-        [](CommandHome) -> bool
-        {
-            // Serial.println("homing");
 
+    executor.execute(Overload{
+        [](CommandHomeGantry) -> bool
+        {
             const bool x_finished = x_axis.homing_update();
             const bool y_finished = y_axis.homing_update();
             const bool z_finished = z_axis.homing_update();
+
+            return x_finished && y_finished && z_finished;
+        },
+        [](CommandHomeAir) -> bool
+        {
             const bool white_finished = white_air_cylinder.homing_update();
             const bool black_finished = black_air_cylinder.homing_update();
 
-            return x_finished && y_finished && z_finished && white_finished && black_finished;
+            return white_finished && black_finished;
         },
         [](const CommandMove& cmd_move) -> bool
         {
@@ -250,30 +302,57 @@ void loop1()
             // auto s = oss.str();
             // Serial.println(s.c_str());
 
-            x_axis.set_target_position(cmd_move.pos.x);
             y_axis.set_target_position(cmd_move.pos.y);
 
-            const auto move_lenght = cmd_move.pos.length();
+            const auto move_length = cmd_move.pos.length();
 
             if (cmd_move.color == Color::black)
             {
+                x_axis.set_target_position(cmd_move.pos.x);
                 z_axis.set_black_position(cmd_move.pos.z);
+
                 if (cmd_move.is_inject)
-                    white_air_cylinder.set_air_volume(move_lenght / 20);
-                else
-                    white_air_cylinder.set_air_volume(-move_lenght / 30);
+                    white_air_cylinder.set_relative_air_volume(move_length / 40);
             }
             else
             {
+                x_axis.set_target_position(cmd_move.pos.x);
                 z_axis.set_white_position(cmd_move.pos.z);
+                
                 if (cmd_move.is_inject)
-                    white_air_cylinder.set_air_volume(move_lenght / 2);
-                else
-                    white_air_cylinder.set_air_volume(-move_lenght / 30);
+                    black_air_cylinder.set_relative_air_volume(move_length / 40);
             }
 
             return stepper_group.run();
         },
-    });
+        [](CommandAir cmd_air) -> bool
+        {
+            static bool is_first_call = true;
 
+            if (is_first_call)
+            {
+                Serial.println("hogeho");   
+                if (cmd_air.color == Color::black)
+                {
+                    black_air_cylinder.set_relative_air_volume(cmd_air.volume_ml);
+                }
+                else
+                {
+                    white_air_cylinder.set_relative_air_volume(cmd_air.volume_ml);
+                }
+
+                is_first_call = false;
+            }
+
+            if (const auto finished = stepper_group.run())
+            {
+                is_first_call = true;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        },
+    });
 }
