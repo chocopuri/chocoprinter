@@ -36,7 +36,7 @@ public:
     {
         if (0 <= volume_ml && volume_ml <= limit_ml)
         {
-            motor.set_target_position(volume_ml / ml_per_rev, 1, 1);
+            motor.set_target_position(volume_ml / ml_per_rev, 5, 5);
             current_volume_ml = volume_ml;
         }
     }

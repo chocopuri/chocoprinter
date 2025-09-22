@@ -302,6 +302,8 @@ void loop1()
             // auto s = oss.str();
             // Serial.println(s.c_str());
 
+            static bool is_first_call = true;
+
             y_axis.set_target_position(cmd_move.pos.y);
 
             const auto move_length = cmd_move.pos.length();
@@ -311,19 +313,29 @@ void loop1()
                 x_axis.set_target_position(cmd_move.pos.x);
                 z_axis.set_black_position(cmd_move.pos.z);
 
-                if (cmd_move.is_inject)
-                    white_air_cylinder.set_relative_air_volume(move_length / 40);
+                if (cmd_move.is_inject && is_first_call)
+                    black_air_cylinder.set_relative_air_volume(move_length / 40);
             }
             else
             {
                 x_axis.set_target_position(cmd_move.pos.x);
                 z_axis.set_white_position(cmd_move.pos.z);
                 
-                if (cmd_move.is_inject)
-                    black_air_cylinder.set_relative_air_volume(move_length / 40);
+                if (cmd_move.is_inject && is_first_call)
+                    white_air_cylinder.set_relative_air_volume(move_length / 40);
             }
 
-            return stepper_group.run();
+            is_first_call = false;
+
+            if (const auto finished = stepper_group.run())
+            {
+                is_first_call = true;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         },
         [](CommandAir cmd_air) -> bool
         {
@@ -331,7 +343,6 @@ void loop1()
 
             if (is_first_call)
             {
-                Serial.println("hogeho");   
                 if (cmd_air.color == Color::black)
                 {
                     black_air_cylinder.set_relative_air_volume(cmd_air.volume_ml);
