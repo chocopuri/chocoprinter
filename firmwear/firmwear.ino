@@ -111,7 +111,7 @@ static AirCylinder white_air_cylinder{
         },
     },
     1 / 3.5,    // mL/rev (ねじ山間隔1mm, 3.5mmで1mL)
-    27,
+    20,
 };
 
 
@@ -134,7 +134,7 @@ static AirCylinder black_air_cylinder{
         },
     },
     1 / 3.5,    // mL/rev (ねじ山間隔1mm, 3.5mmで1mL)
-    27,
+    20,
 };
 
 // static file control_webpage[]{
@@ -203,6 +203,7 @@ void setup()
 
         executor.replace_instructions({});    // 既存の命令をクリア
 
+
         // ホーミングするときに吸気するためチョコレートが吸い込まれてしまう。なので動作直前ではなくチョコがセッティングされていないときに原点どりをしておく。
         executor.push_instruction(CommandHomeAir{});
 
@@ -220,7 +221,7 @@ void setup()
                                // 射出開始時にエアーを出し管内の圧を上げる (チョコが出るまでにラグがあるため)
                                if (cmd_move.is_inject && not is_prev_inject)
                                {
-                                   executor.push_instruction(CommandAir{ cmd_move.color, 5 });
+                                   executor.push_instruction(CommandAir{ cmd_move.color, 4, 2 });
                                }
 
                                executor.push_instruction(cmd_move);
@@ -228,7 +229,7 @@ void setup()
                                // 停止時にエアーを少し吸って管内の圧を下げる (チョコが垂れるのを防止するため)
                                if (not cmd_move.is_inject && is_prev_inject)
                                {
-                                   executor.push_instruction(CommandAir{ cmd_move.color, -2 });
+                                   executor.push_instruction(CommandAir{ cmd_move.color, -5, 8 });
                                }
 
                                is_prev_inject = cmd_move.is_inject;
@@ -306,7 +307,15 @@ void loop1()
 
             y_axis.set_target_position(cmd_move.pos.y);
 
-            const auto move_length = cmd_move.pos.length();
+            static Vec3 last_pos{};
+            const auto diff = cmd_move.pos - last_pos;
+
+            const auto move_length = diff.length();
+
+            if (is_first_call)
+            {
+                last_pos = cmd_move.pos;
+            }
 
             if (cmd_move.color == Color::black)
             {
@@ -314,7 +323,7 @@ void loop1()
                 z_axis.set_black_position(cmd_move.pos.z);
 
                 if (cmd_move.is_inject && is_first_call)
-                    black_air_cylinder.set_relative_air_volume(move_length / 40);
+                    black_air_cylinder.set_relative_air_volume(move_length / 60, 4);
             }
             else
             {
@@ -322,7 +331,7 @@ void loop1()
                 z_axis.set_white_position(cmd_move.pos.z);
                 
                 if (cmd_move.is_inject && is_first_call)
-                    white_air_cylinder.set_relative_air_volume(move_length / 40);
+                    white_air_cylinder.set_relative_air_volume(move_length / 60, 4);
             }
 
             is_first_call = false;
@@ -345,11 +354,11 @@ void loop1()
             {
                 if (cmd_air.color == Color::black)
                 {
-                    black_air_cylinder.set_relative_air_volume(cmd_air.volume_ml);
+                    black_air_cylinder.set_relative_air_volume(cmd_air.volume_ml, cmd_air.speed);
                 }
                 else
                 {
-                    white_air_cylinder.set_relative_air_volume(cmd_air.volume_ml);
+                    white_air_cylinder.set_relative_air_volume(cmd_air.volume_ml, cmd_air.speed);
                 }
 
                 is_first_call = false;

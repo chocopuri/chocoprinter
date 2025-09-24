@@ -35,7 +35,8 @@ struct CommandAir
 {
     Color color;
     float volume_ml;
-
+    float speed; // [mL/s]
+    
     friend bool operator==(const CommandAir& l, const CommandAir& r);
     friend std::ostream& operator<<(std::ostream& os, const CommandAir& self);
 };

@@ -32,18 +32,19 @@ public:
 
     /// @brief 絶対位置移動
     /// @param volume_ml 移動する空気量 [mL]
-    void set_absolute_air_volume(float volume_ml)
+    void set_absolute_air_volume(float volume_ml, float speed)
     {
-        if (0 <= volume_ml && volume_ml <= limit_ml)
+        Serial.println(volume_ml);
+        if (1 <= volume_ml && volume_ml <= limit_ml)
         {
-            motor.set_target_position(volume_ml / ml_per_rev, 5, 5);
+            motor.set_target_position(volume_ml / ml_per_rev, speed, 5);
             current_volume_ml = volume_ml;
         }
     }
 
     /// @brief 相対位置移動
-    void set_relative_air_volume(float volume_ml)
+    void set_relative_air_volume(float volume_ml, float speed)
     {
-        set_absolute_air_volume(current_volume_ml + volume_ml);
+        set_absolute_air_volume(current_volume_ml + volume_ml, speed);
     }
 };
