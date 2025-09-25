@@ -6,6 +6,8 @@ class AirCylinder
 {
     StepperMotorHomeableSynchronizable motor;
     float ml_per_rev;
+    float limit_ml;
+    float current_volume_ml = 0;
 
 public:
     /// @brief
@@ -14,6 +16,7 @@ public:
     AirCylinder(StepperMotorHomeableSynchronizable&& motor, float ml_per_rev, float limit_ml)
         : motor{ std::move(motor) }
         , ml_per_rev{ ml_per_rev }
+        , limit_ml{ limit_ml }
     {
     }
 
@@ -27,9 +30,21 @@ public:
         return motor.homing_update();
     }
 
-    void set_air_volume(float volume_ml)
+    /// @brief 絶対位置移動
+    /// @param volume_ml 移動する空気量 [mL]
+    void set_absolute_air_volume(float volume_ml, float speed)
     {
-        // motor.set_target_position(volume_ml / ml_per_rev);
-        motor.set_target_position(50);
+        Serial.println(volume_ml);
+        if (1 <= volume_ml && volume_ml <= limit_ml)
+        {
+            motor.set_target_position(volume_ml / ml_per_rev, speed, 5);
+            current_volume_ml = volume_ml;
+        }
+    }
+
+    /// @brief 相対位置移動
+    void set_relative_air_volume(float volume_ml, float speed)
+    {
+        set_absolute_air_volume(current_volume_ml + volume_ml, speed);
     }
 };

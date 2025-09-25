@@ -2,12 +2,12 @@
 
 #include "command_parser.hpp"
 
-bool operator==(const CommandHome&, const CommandHome&)
+bool operator==(const CommandHomeGantry&, const CommandHomeGantry&)
 {
     return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const CommandHome&)
+std::ostream& operator<<(std::ostream& os, const CommandHomeGantry&)
 {
     return os << "home";
 }
@@ -22,12 +22,55 @@ std::ostream& operator<<(std::ostream& os, const CommandMove& self)
     return os << "move { " << self.color << " " << self.pos << " " << self.speed << " " << (self.is_inject ? "inject" : "stop") << " }";
 }
 
+bool operator==(const CommandAir& l, const CommandAir& r)
+{
+    return l.color == r.color && l.volume_ml == r.volume_ml;
+}
+
+std::ostream& operator<<(std::ostream& os, const CommandAir& self)
+{
+    return os << "air { " << self.color << " " << self.volume_ml << " }";
+}
+
+
+bool operator==(const CommandHomeAir& l, const CommandHomeAir& r)
+{
+    return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const CommandHomeAir& self)
+{
+    return os << "homing_air";
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Command& self)
 {
     return std::visit([&os](auto&& value) -> std::ostream&
                       { return os << value; },
                       self);
+}
+
+bool operator==(const Command& l, const Command& r)
+{
+    if (l.index() != r.index())
+        return false;
+
+    return std::visit(
+        [](auto&& left, auto&& right) -> bool
+        {
+            using L = std::decay_t<decltype(left)>;
+            using R = std::decay_t<decltype(right)>;
+            if constexpr (std::is_same_v<L, R>)
+            {
+                return left == right;
+            }
+            else
+            {
+                return false;
+            }
+        },
+        l, r);
 }
 
 template <typename T>
@@ -81,7 +124,7 @@ std::optional<Command> parse_command(const std::string& command_text)
 
     if (*command_type_str == "home")
     {
-        return CommandHome{};
+        return CommandHomeGantry{};
     }
 
     return std::nullopt;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <istream>
+#include <cmath>
 
 enum class Color
 {
@@ -30,6 +31,17 @@ struct Vec3
     friend std::ostream& operator<<(std::ostream& os, const Vec3& self)
     {
         return os << "{ " << self.x << " " << self.y << " " << self.z << " }"; 
+    }
+    
+    // 減算
+    Vec3 operator-(const Vec3& other) const
+    {
+        return Vec3{ x - other.x, y - other.y, z - other.z };
+    }
+    
+    float length() const
+    {
+        return std::sqrt(x * x + y * y + z * z);
     }
 };
 

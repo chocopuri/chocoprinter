@@ -51,7 +51,6 @@ public:
     // 原点どり終了で true を返す
     bool homing_update()
     {
-        Serial.println(homing_sequence);
         switch (homing_sequence)
         {
         case -1:    // すでに原点どり済  //だが再度原点どりするケース
@@ -98,14 +97,22 @@ public:
 
     /// @brief 目標値を設定 実際の動作はsync_group参照先のオブジェクト経由で行う
     /// @param absolute_position_rev 何回転するか
-    void set_target_position(float absolute_position_rev)
+    void set_target_position(float absolute_position_rev, float acceleration = -1, float max_speed = -1)
     {
-        if (homing_sequence == -1)
-        {
-            Serial.println(absolute_position_rev);
-            driver.set_acceleration(config.approach_switch_acceleration);
-            driver.set_max_speed(abs(config.approach_switch_speed));
-            driver.set_absolute_target_position_sync(absolute_position_rev);
-        }
+        if (homing_sequence != -1)
+            return;    // 原点どり中、または原点どり未実施
+        
+        if (acceleration > 0)
+            driver.set_acceleration(acceleration);
+        else
+            driver.set_acceleration(config.leave_switch_acceleration);
+
+        if (max_speed > 0)
+            driver.set_max_speed(max_speed);
+        else
+            driver.set_max_speed(config.leave_switch_speed);
+            
+        driver.set_absolute_target_position_sync(absolute_position_rev);
     }
+
 };
