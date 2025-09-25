@@ -16,11 +16,11 @@ Access-Control-Allow-Methods: PUT, DELETE, PATCH
       ctrl
       <button onclick="onSendButtonClicked()">送信</button>
       <br>
-      change
+      color
       <button onclick="changeColor()">色切り替え</button>
       <br>
-      change
-      <button onclick="changeColor()">色切り替え</button>
+      choco ON/OFF
+      <button onclick="changeMove()">チョコ オン/オフ</button>
     </div>
   </div>
   <script>
@@ -55,13 +55,20 @@ Access-Control-Allow-Methods: PUT, DELETE, PATCH
     canvas.height = rect.height;
 
     let command = [];
+    command.push('home');
     let list = [];
+    let color_list = [];
+    let color = 'black'
+    let move = 'stop'
+    let move_list =[];
 
     window.addEventListener("resize", () => {
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
       list = [];
+      let color_list = [];
+      let move_list =[];
     })
 
     canvas.addEventListener('click', (event) => {
@@ -72,25 +79,33 @@ Access-Control-Allow-Methods: PUT, DELETE, PATCH
         y: event.pageY - canvasRect.top   // Canvas左上からのY座標
       };
 
-      
-
       list.push({ x: mousePos.x, y: mousePos.y });
+      color_list.push(color);
+      move_list.push(move);
       console.log(list[list.length-1].x);
-      let color = 'white'
-      let move = 'inject'
 
       command.push(`move ${color} ${list[list.length-1].x} ${list[list.length-1].y} 10 20 ${move}`)
       // command.push('move' + list[list.length-1].x)
+      console.log(command);
 
-      ctx.beginPath();
-      ctx.moveTo(list[0].x, list[0].y);
       for (let i = 1; i < list.length; i++) {
-        ctx.lineTo(list[i].x, list[i].y);
+        ctx.beginPath();
+        ctx.moveTo(list[i-1].x, list[i-1].y);
+        if(move_list[i] == 'inject') {
+        if(color_list[i] == 'white') {
+          ctx.lineTo(list[i].x, list[i].y);
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 5;
+          ctx.stroke();
+        } 
+        else {
+          ctx.lineTo(list[i].x, list[i].y);
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 5;
+          ctx.stroke();
+        }
       }
-
-      ctx.strokeStyle = 'blue'; // 青い線
-      ctx.lineWidth = 5;
-      ctx.stroke();
+      }
 
       drawDot(mousePos.x, mousePos.y);
     });
@@ -103,7 +118,7 @@ Access-Control-Allow-Methods: PUT, DELETE, PATCH
         headers: {
           'Content-Type': 'application/json'
         },
-        body: list.join('\n')
+        body: command.join('\n')
       })
         .then(response => response.json())
         .then(data => {
@@ -125,6 +140,29 @@ Access-Control-Allow-Methods: PUT, DELETE, PATCH
       // ctx.arc(x, y, 5, 0, Math.PI * 2, true); // x, y座標, 半径, 開始角度, 終了角度, 描画方向(trueで反時計回り)
       ctx.arc(x, y, 5, 0, Math.PI * 2, true); // x, y座標, 半径, 開始角度, 終了角度, 描画方向(trueで反時計回り)
       ctx.fill(); // 塗りつぶす
+    }
+
+    function changeColor() {
+      if(color == 'white') {
+        color = 'black';
+      }
+      else {
+        color = 'white';
+      }
+    
+    }
+
+    function changeMove() {
+      if(move == 'inject') {
+        move = 'stop';
+        console.log(move);
+      }
+      else {
+        move = 'inject';
+        console.log(move);
+
+      }
+    
     }
 
   </script>

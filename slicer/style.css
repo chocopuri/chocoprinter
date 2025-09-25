@@ -17,11 +17,17 @@ html, body {
 #board {
     flex: 1;
     border: 5px solid blue;
+    background-color: gray;
 }
 
 .right {
     width: 200px;
     border: 5px solid red;
+}
+
+.left-content {
+    width: 300;
+    aspect-ratio: 1 / 1;
 }
 
 /* .container {
