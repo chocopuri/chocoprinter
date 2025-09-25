@@ -30,6 +30,12 @@ public:
         return motor.homing_update();
     }
 
+    void reset_homing()
+    {
+        motor.reset_homing();
+        current_volume_ml = 0;
+    }
+
     /// @brief 絶対位置移動
     /// @param volume_ml 移動する空気量 [mL]
     void set_absolute_air_volume(float volume_ml, float speed)

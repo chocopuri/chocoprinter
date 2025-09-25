@@ -203,15 +203,14 @@ void setup()
 
         executor.replace_instructions({});    // 既存の命令をクリア
 
-
-        // ホーミングするときに吸気するためチョコレートが吸い込まれてしまう。なので動作直前ではなくチョコがセッティングされていないときに原点どりをしておく。
-        executor.push_instruction(CommandHomeAir{});
-
         for (auto&& cmd : *parsed_command)
         {
             std::visit(Overload{
                            [&](CommandHomeGantry)
                            {
+                               x_axis.reset_homing();
+                               y_axis.reset_homing();
+                               z_axis.reset_homing();
                                executor.push_instruction(CommandHomeGantry{});
                            },
                            [&](const CommandMove& cmd_move)
@@ -234,8 +233,14 @@ void setup()
 
                                is_prev_inject = cmd_move.is_inject;
                            },
-                           [](CommandAir) {},    // パース段階で弾いているのでここには来ない
-                           [](CommandHomeAir) {},
+                           [](CommandAir)
+                           {
+                           },    // パース段階で弾いているのでここには来ない
+                           [](CommandHomeAir) {                            
+                               white_air_cylinder.reset_homing();
+                               black_air_cylinder.reset_homing();
+                               executor.push_instruction(CommandHomeAir{});
+                           },
                        },
                        cmd);
         }
@@ -275,6 +280,9 @@ void setup1()
     x_axis.begin();
     y_axis.begin();
     z_axis.begin();
+
+    // ホーミングするときに吸気するためチョコレートが吸い込まれてしまう。なので動作直前ではなくチョコがセッティングされていないときに原点どりをしておく。
+    executor.push_instruction(CommandHomeAir{});
 }
 
 void loop1()
@@ -305,7 +313,7 @@ void loop1()
 
             static bool is_first_call = true;
 
-            y_axis.set_target_position(cmd_move.pos.y);
+            y_axis.set_target_position(cmd_move.pos.y, cmd_move.speed);
 
             static Vec3 last_pos{};
             const auto diff = cmd_move.pos - last_pos;
@@ -319,17 +327,17 @@ void loop1()
 
             if (cmd_move.color == Color::black)
             {
-                x_axis.set_target_position(cmd_move.pos.x);
-                z_axis.set_black_position(cmd_move.pos.z);
+                x_axis.set_target_position(cmd_move.pos.x, cmd_move.speed);
+                z_axis.set_black_position(cmd_move.pos.z, cmd_move.speed);
 
                 if (cmd_move.is_inject && is_first_call)
                     black_air_cylinder.set_relative_air_volume(move_length / 60, 4);
             }
             else
             {
-                x_axis.set_target_position(cmd_move.pos.x);
-                z_axis.set_white_position(cmd_move.pos.z);
-                
+                x_axis.set_target_position(cmd_move.pos.x, cmd_move.speed);
+                z_axis.set_white_position(cmd_move.pos.z, cmd_move.speed);
+
                 if (cmd_move.is_inject && is_first_call)
                     white_air_cylinder.set_relative_air_volume(move_length / 60, 4);
             }

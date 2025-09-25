@@ -122,6 +122,11 @@ std::optional<Command> parse_command(const std::string& command_text)
         };
     }
 
+    if (*command_type_str == "home air")
+    {
+        return CommandHomeAir{};
+    }
+
     if (*command_type_str == "home")
     {
         return CommandHomeGantry{};

@@ -29,10 +29,15 @@ public:
     {
         return motor.homing_update();
     }
-    
-    void set_target_position(float x_mm)
+
+    void reset_homing()
     {
-        motor.set_target_position(constrain(x_mm, 0, x_limit_mm) / mm_per_rev);
+        motor.reset_homing();
+    }
+    
+    void set_target_position(float x_mm, float speed)
+    {
+        motor.set_target_position(constrain(x_mm, 0, x_limit_mm) / mm_per_rev, -1, speed);
     }
 };
 
@@ -70,13 +75,18 @@ public:
         return motor.homing_update();
     }
 
-    void set_black_position(float z_mm)
+    void reset_homing()
     {
-        motor.set_target_position((constrain(z_mm, 0, z_limit_mm) - black_zero_pos_mm) / mm_per_rev);
+        motor.reset_homing();
     }
 
-    void set_white_position(float z_mm)
+    void set_black_position(float z_mm, float speed)
     {
-        motor.set_target_position((white_zero_pos_mm - constrain(z_mm, 0, z_limit_mm)) / mm_per_rev);
+        motor.set_target_position((constrain(z_mm, 0, z_limit_mm) - black_zero_pos_mm) / mm_per_rev, -1, speed);
+    }
+
+    void set_white_position(float z_mm, float speed)
+    {
+        motor.set_target_position((white_zero_pos_mm - constrain(z_mm, 0, z_limit_mm)) / mm_per_rev, -1, speed);
     }
 };

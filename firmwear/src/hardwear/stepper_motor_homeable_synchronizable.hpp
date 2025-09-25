@@ -48,6 +48,12 @@ public:
         limit_switch.begin();
     }
 
+    /// @brief 原点どりしていない状態にする
+    void reset_homing()
+    {
+        homing_sequence = 0;
+    }
+
     // 原点どり終了で true を返す
     bool homing_update()
     {
