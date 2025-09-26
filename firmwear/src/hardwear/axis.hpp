@@ -34,6 +34,18 @@ public:
     {
         motor.reset_homing();
     }
+
+    void set_black_position(float x_mm, float speed)
+    {
+        set_target_position(x_mm + 65, speed);
+    }
+
+    void set_white_position(float x_mm, float speed)
+    {
+        set_target_position(x_mm, speed);
+    }
+
+private:
     
     void set_target_position(float x_mm, float speed)
     {
@@ -41,7 +53,46 @@ public:
     }
 };
 
-using YAxis = XAxis;    // X軸と同じ仕様
+
+class YAxis
+{
+    StepperMotorHomeableSynchronizable motor;
+    const float mm_per_rev;
+    const float x_limit_mm;
+
+public:
+
+    /// @brief 
+    /// @param motor 
+    /// @param mm_per_rev 回転数から移動距離への変換係数 [mm/rev]
+    YAxis(StepperMotorHomeableSynchronizable&& motor, float mm_per_rev, float x_limit_mm)
+        : motor{ std::move(motor) }
+        , mm_per_rev{ mm_per_rev }
+        , x_limit_mm{ x_limit_mm }
+    {
+    }
+
+    void begin()
+    {
+        motor.begin();
+    }
+
+    bool homing_update()
+    {
+        return motor.homing_update();
+    }
+
+    void reset_homing()
+    {
+        motor.reset_homing();
+    }
+    
+    void set_target_position(float x_mm, float speed)
+    {
+        motor.set_target_position(constrain(x_mm, 0, x_limit_mm) / mm_per_rev, -1, speed);
+    }
+};
+
 
 class ZAxis
 {

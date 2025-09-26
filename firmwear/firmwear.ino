@@ -89,11 +89,12 @@ static YAxis y_axis{
         },
     },
     14 * M_PI,    // mm/rev
-    130,          // y_limit_mm
+    140,          // y_limit_mm
 };
 
 
-static AirCylinder white_air_cylinder{
+// 左が黒
+static AirCylinder black_air_cylinder{
     StepperMotorHomeableSynchronizable{
         stepper_group,
         SteppingMotor{
@@ -114,8 +115,8 @@ static AirCylinder white_air_cylinder{
     20,
 };
 
-
-static AirCylinder black_air_cylinder{
+// 右が黒
+static AirCylinder white_air_cylinder{
     StepperMotorHomeableSynchronizable{
         // right
         stepper_group,
@@ -220,16 +221,16 @@ void setup()
                                // 射出開始時にエアーを出し管内の圧を上げる (チョコが出るまでにラグがあるため)
                                if (cmd_move.is_inject && not is_prev_inject)
                                {
-                                   executor.push_instruction(CommandAir{ cmd_move.color, 4, 2 });
+                                   executor.push_instruction(CommandAir{ cmd_move.color, 5, 1 });
                                }
 
                                executor.push_instruction(cmd_move);
 
-                               // 停止時にエアーを少し吸って管内の圧を下げる (チョコが垂れるのを防止するため)
-                               if (not cmd_move.is_inject && is_prev_inject)
-                               {
-                                   executor.push_instruction(CommandAir{ cmd_move.color, -5, 8 });
-                               }
+                            //    // 停止時にエアーを少し吸って管内の圧を下げる (チョコが垂れるのを防止するため)
+                            //    if (not cmd_move.is_inject && is_prev_inject)
+                            //    {
+                            //        executor.push_instruction(CommandAir{ cmd_move.color, -5, 8 });
+                            //    }
 
                                is_prev_inject = cmd_move.is_inject;
                            },
@@ -327,19 +328,19 @@ void loop1()
 
             if (cmd_move.color == Color::black)
             {
-                x_axis.set_target_position(cmd_move.pos.x, cmd_move.speed);
+                x_axis.set_black_position(cmd_move.pos.x, cmd_move.speed);
                 z_axis.set_black_position(cmd_move.pos.z, cmd_move.speed);
 
                 if (cmd_move.is_inject && is_first_call)
-                    black_air_cylinder.set_relative_air_volume(move_length / 60, 4);
+                    black_air_cylinder.set_relative_air_volume(move_length / 80, 4);
             }
             else
             {
-                x_axis.set_target_position(cmd_move.pos.x, cmd_move.speed);
+                x_axis.set_white_position(cmd_move.pos.x, cmd_move.speed);
                 z_axis.set_white_position(cmd_move.pos.z, cmd_move.speed);
 
                 if (cmd_move.is_inject && is_first_call)
-                    white_air_cylinder.set_relative_air_volume(move_length / 60, 4);
+                    white_air_cylinder.set_relative_air_volume(move_length / 80, 4);
             }
 
             is_first_call = false;
