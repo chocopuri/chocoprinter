@@ -4,7 +4,7 @@
 
 ## 使用方法
 
-<https://chocopri.github.io/choprinter/>
+<https://chocopuri.github.io/choprinter/>
 
 ### 印刷
 
