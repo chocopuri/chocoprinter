@@ -1,3 +1,8 @@
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  
 on:
   push:
     branches:
