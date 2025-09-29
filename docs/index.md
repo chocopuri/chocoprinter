@@ -9,19 +9,19 @@
 
     ---
 
-    [👉移動](./setup/)
+    [👉移動](setup/index.md)
 
 - ### __故障時の対応__
 
     ---
 
-    [👉移動](./trouble/)
+    [👉移動](trouble/index.md)
 
 - ### __部品表__
 
     ---
 
-    [👉移動](./bom/)
+    [👉移動](bom/index.md)
 
 </div>
 
