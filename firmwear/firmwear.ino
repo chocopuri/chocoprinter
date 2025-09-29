@@ -191,7 +191,7 @@ void setup()
     wifi_begin(env::access_points);
     // wifi_begin(load_access_points());
 
-    mdns_begin("pico");    // http://pico.local
+    mdns_begin("chocoprinter");    // http://chocoprinter.local
 
     http_server_begin();
 
