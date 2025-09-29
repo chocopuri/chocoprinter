@@ -1,13 +1,12 @@
 site_name: chocoprinter
-site_url: https://chocopri.github.io/chocoprinter/
+site_url: https://chocopuri.github.io/chocoprinter/
 
-repo_url: https://github.com/chocopri/chocoprinter
-repo_name: chocopri/chocoprinter
+repo_url: https://github.com/chocopuri/chocoprinter/
+repo_name: chocopuri/chocoprinter
 
-copyright: chocopri © 2025
+copyright: chocopuri © 2025
 
 nav:
-  - ホーム: index.md
   - 準備手順: setup/index.md
   - 故障時の対応: trouble/index.md
   - 部品表: bom/index.md
