@@ -134,3 +134,41 @@ std::optional<Command> parse_command(const std::string& command_text)
 
     return std::nullopt;
 }
+
+
+static std::vector<std::string> split_newline(const std::string& input)
+{
+    std::vector<std::string> dest;
+    size_t start = 0, pos;
+    while ((pos = input.find('\n', start)) != std::string::npos)
+    {
+        dest.push_back(input.substr(start, pos - start));
+        start = pos + 1;
+    }
+    dest.push_back(input.substr(start));
+    return dest;
+}
+
+std::optional<std::vector<Command>> parse_commands(const std::string& command_text)
+{
+    std::vector<Command> dest{};
+
+    std::vector<std::string> splitted_commands = split_newline(command_text);
+    
+    for (auto&& command : splitted_commands)
+    {
+        if (command.size() == 0)
+            continue;
+            
+        if (const auto parsed_command = parse_command(command))
+        {
+            dest.push_back(*parsed_command);
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+
+    return dest;
+}

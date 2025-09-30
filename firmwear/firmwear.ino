@@ -9,46 +9,27 @@
 //
 
 
-#include "src/network/wifi.hpp"
+// ネットワーク関係
+#include "src/network/ap.hpp"
 #include "src/network/mdns.hpp"
 #include "src/network/http_server.hpp"
+#include "src/network/web_server.hpp"
+
+// ハードウエア関係
 #include "src/command_parser/command_parser.hpp"
 #include "src/executor/executor.hpp"
-#include "src/file/file.hpp"
 #include "src/hardwear/stepper_motor_homeable_synchronizable.hpp"
 #include "src/hardwear/axis.hpp"
 #include "src/hardwear/air_cylinder.hpp"
 
-#include <sstream>
-
 #include "env.hpp"
 
-static Executor<Command> executor;
+
+static Executor<Command> executor;   // コマンドを順に実行していくやつ
+
 
 static StepperSyncGroup stepper_group;    // 動作を同期させるやつ
 
-static ZAxis z_axis{
-    StepperMotorHomeableSynchronizable{
-        stepper_group,
-        SteppingMotor{
-            AccelStepper{ AccelStepper::DRIVER, 26, 22 },
-            Direction::forward,
-            200 * 8,    // [pulse/rev]
-        },
-        LimitSwitch{ 4 },
-        HomingConfig{
-            .approach_switch_speed = -0.5,
-            .approach_switch_acceleration = 10,
-            .leave_switch_distance = 0.93,
-            .leave_switch_speed = 0.5,
-            .leave_switch_acceleration = 10,
-        },
-    },
-    14 * M_PI,    // mm/rev
-    40,           // white_zero_pos_mm
-    40,           // black_zero_pos_mm
-    80,           // z_limit_mm
-};
 
 static XAxis x_axis{
     StepperMotorHomeableSynchronizable{
@@ -71,6 +52,7 @@ static XAxis x_axis{
     130,          // x_limit_mm
 };
 
+
 static YAxis y_axis{
     StepperMotorHomeableSynchronizable{
         stepper_group,
@@ -90,6 +72,30 @@ static YAxis y_axis{
     },
     14 * M_PI,    // mm/rev
     140,          // y_limit_mm
+};
+
+
+static ZAxis z_axis{
+    StepperMotorHomeableSynchronizable{
+        stepper_group,
+        SteppingMotor{
+            AccelStepper{ AccelStepper::DRIVER, 26, 22 },
+            Direction::forward,
+            200 * 8,    // [pulse/rev]
+        },
+        LimitSwitch{ 4 },
+        HomingConfig{
+            .approach_switch_speed = -0.5,
+            .approach_switch_acceleration = 10,
+            .leave_switch_distance = 0.93,
+            .leave_switch_speed = 0.5,
+            .leave_switch_acceleration = 10,
+        },
+    },
+    14 * M_PI,    // mm/rev
+    40,           // white_zero_pos_mm
+    40,           // black_zero_pos_mm
+    80,           // z_limit_mm
 };
 
 
@@ -138,58 +144,19 @@ static AirCylinder white_air_cylinder{
     20,
 };
 
-// static file control_webpage[]{
-//     file{ "index.html" },
-//     file{ "style.css" },
-//     file{ "script.js" },
-// };
-
-static file access_point_file{ "access_point.csv" };
-
-std::vector<AccessPoint> load_access_points()
-{
-    std::vector<AccessPoint> aps{};
-
-    if (const auto all_line_opt = access_point_file.read_all_line())
-    {
-        std::istringstream iss{ *all_line_opt };
-        std::string line;
-
-        while (std::getline(iss, line))
-        {
-            const auto comma_pos = line.find(',');
-            if (comma_pos == std::string::npos)
-                continue;
-
-            const auto ssid = line.substr(0, comma_pos);
-            const auto pass = line.substr(comma_pos + 1);
-
-            if (ssid.size() == 0 || pass.size() == 0)
-                continue;
-
-            aps.push_back(AccessPoint{ ssid.c_str(), pass.c_str() });
-        }
-    }
-
-    return aps;
-}
+static WebServer web_server{ {
+    file{ "index.html" },
+    file{ "style.css" },
+    file{ "script.js" },
+} };
 
 void setup()
 {
     sd_card_begin();
 
-    // for (auto&& file : control_webpage)
-    // {
-    //     if (file.exists())
-    //         Serial.print("[ OK ] file exists: ");
-    //     else
-    //         Serial.print("[ NG ] file not exists: ");
-
-    //     Serial.println(file.get_filename().c_str());
-    // }
-
-    wifi_begin(env::access_points);
+    // wifi_begin(env::access_points);
     // wifi_begin(load_access_points());
+    wifi_begin(load_access_point_configs("ap.txt"));
 
     mdns_begin("pico");    // http://pico.local
 
@@ -226,18 +193,12 @@ void setup()
 
                                executor.push_instruction(cmd_move);
 
-                            //    // 停止時にエアーを少し吸って管内の圧を下げる (チョコが垂れるのを防止するため)
-                            //    if (not cmd_move.is_inject && is_prev_inject)
-                            //    {
-                            //        executor.push_instruction(CommandAir{ cmd_move.color, -5, 8 });
-                            //    }
-
                                is_prev_inject = cmd_move.is_inject;
                            },
-                           [](CommandAir)
-                           {
+                           [](CommandAir) {
                            },    // パース段階で弾いているのでここには来ない
-                           [](CommandHomeAir) {                            
+                           [](CommandHomeAir)
+                           {
                                white_air_cylinder.reset_homing();
                                black_air_cylinder.reset_homing();
                                executor.push_instruction(CommandHomeAir{});
@@ -255,15 +216,7 @@ void setup()
 
     http_server_add_post_handler("/command", command_receive_handler);
 
-    // for (auto&& file : control_webpage)
-    // {
-    //     http_server_add_get_handler("/" + file.get_filename(), [&file]() -> HttpResponse
-    //                                 {
-    //                                     if (const auto all_line_opt = file.read_all_line())
-    //                                         return { 200, "text/html", *all_line_opt };
-    //                                     else
-    //                                         return { 500, "text/html", "server internal error. \n file open failed." }; });
-    // }
+    web_server.begin();
 }
 
 void loop()
