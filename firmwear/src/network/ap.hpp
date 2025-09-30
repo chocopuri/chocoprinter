@@ -6,11 +6,14 @@
 #include "wifi.hpp"
 #include "../file/file.hpp"
 
-inline std::vector<AccessPoint> load_access_point_configs(const file& access_point_file)
+/// @brief アクセスポイント設定ファイルを読み込む
+/// @param config_file 設定ファイル (1行に1つ、SSID,パスワード の形式で記述)
+/// @return 読み込んだアクセスポイント設定
+inline std::vector<AccessPoint> load_access_point_configs(file&& config_file)
 {
     std::vector<AccessPoint> aps{};
 
-    if (const auto all_line_opt = access_point_file.read_all_line())
+    if (const auto all_line_opt = config_file.read_all_line())
     {
         std::istringstream iss{ *all_line_opt };
         std::string line;

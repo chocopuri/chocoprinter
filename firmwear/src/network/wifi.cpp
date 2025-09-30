@@ -6,7 +6,7 @@
 
 static WiFiMulti wifiMulti;
 
-void wifi_begin(const std::vector<AccessPoint>& aps)
+void wifi_begin(std::vector<AccessPoint>&& aps)
 {
     for (const auto& ap : aps)
     {

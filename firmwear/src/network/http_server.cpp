@@ -10,7 +10,7 @@ void http_server_begin()
     g_server.begin();
 }
 
-void http_server_add_post_handler(const std::string& endpoint, std::function<HttpResponse(std::string_view)>&& post_handler)
+void http_server_add_post_handler(std::string&& endpoint, std::function<HttpResponse(std::string_view)>&& post_handler)
 {
     g_server.on(String{ endpoint.c_str() }, HTTP_POST, [=]()
                 {
@@ -35,7 +35,7 @@ void http_server_add_post_handler(const std::string& endpoint, std::function<Htt
     });
 }
 
-void http_server_add_get_handler(const std::string& endpoint, std::function<HttpResponse()>&& get_handler)
+void http_server_add_get_handler(std::string&& endpoint, std::function<HttpResponse()>&& get_handler)
 {
     g_server.on(String{ endpoint.c_str() }, HTTP_GET, [=]()
                 {

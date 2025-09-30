@@ -35,10 +35,10 @@ TrapezoidBlock make_trapezoid_block(float begin, float end, float speed_begin, f
     const float trap_time_acc = (speed_limit - speed_begin) / acc;
     const float trap_time_dec = (speed_limit - speed_end) / dec;
 
-    // 逆算した加減速期間での移動距離 (台形状と仮定)
+    // 加減速期間を基に移動距離を逆算 (台形状と仮定)
     const float trap_dist_acc = (speed_begin + speed_limit) * trap_time_acc / 2;
     const float trap_dist_dec = (speed_end + speed_limit) * trap_time_dec / 2;
-    const float trap_dist = trap_dist_acc + trap_dist_dec;
+    const float trap_dist = trap_dist_acc + trap_dist_dec;  // 三角状のときはこの距離が distance より大きくなる
 
     if (trap_dist < distance)
     {
@@ -61,13 +61,13 @@ TrapezoidBlock make_trapezoid_block(float begin, float end, float speed_begin, f
     else
     {
         // 三角状 台形と仮定し時間を求めているためすべて再計算
-        // 最高速度を求める式は次の連立方程式を解くことで求められる
+        // 最高速度を求める式は次の連立方程式を解くことで求められる。変数 speed_limit を追加して立式した
 
         // | time_acc = (speed_max - speed_begin) / acc
         // { time_dec = (speed_max - speed_end) / dec
         // | distance = {(speed_begin + speed_limit) / 2 * time_acc} + {(speed_end + speed_limit) / 2 * time_dec}
 
-        const double triangle_speed_max = std::sqrt((2 * distance * acc * dec + speed_begin * speed_begin * dec + speed_end * speed_end * acc) / (acc + dec));
+        const float triangle_speed_max = std::sqrt((2 * distance * acc * dec + speed_begin * speed_begin * dec + speed_end * speed_end * acc) / (acc + dec));
 
         const float triangle_time_acc = (triangle_speed_max - speed_begin) / acc;
         const float triangle_time_const = 0;
@@ -76,7 +76,7 @@ TrapezoidBlock make_trapezoid_block(float begin, float end, float speed_begin, f
         return {
             .distance = distance,
 
-            .speed_max = (float)triangle_speed_max,
+            .speed_max = triangle_speed_max,
             .speed_begin = speed_begin,
             .speed_end = speed_end,
 
