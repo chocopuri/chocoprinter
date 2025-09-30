@@ -1,0 +1,79 @@
+site_name: chocoprinter
+site_url: https://chocopuri.github.io/chocoprinter/
+
+repo_url: https://github.com/chocopuri/chocoprinter/
+repo_name: chocopuri/chocoprinter
+
+copyright: chocopuri © 2025
+
+nav:
+  - 準備手順: setup/index.md
+  - 故障時の対応: trouble/index.md
+  - 部品表: bom/index.md
+
+theme:
+  name: material
+  language: ja
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - search.highlight
+    - search.share
+    - search.suggest
+    - header.autohide
+
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      primary: grey
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      primary: black
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra:
+  generator: false
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - footnotes
+  - attr_list
+  - md_in_html
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+# ビルド時間短縮のために変更の監視対象から除外
+plugins:
+  - table-reader  # CSVファイルからテーブルを生成
+  - exclude:
+      glob:
+        - ".git/*"
+        - ".github/*"
+        - "firmware/*"
+        - "slicer/*"
