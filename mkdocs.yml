@@ -7,6 +7,7 @@ repo_name: chocopuri/chocoprinter
 copyright: chocopuri © 2025
 
 nav:
+  - ホーム: index.md
   - 準備手順: setup/index.md
   - 故障時の対応: trouble/index.md
   - 部品表: bom/index.md
